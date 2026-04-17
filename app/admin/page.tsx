@@ -5,7 +5,7 @@ import { db } from "../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function Admin() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
