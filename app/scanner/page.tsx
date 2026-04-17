@@ -11,49 +11,59 @@ export default function Scanner() {
   useEffect(() => {
     const scanner = new Html5Qrcode("reader");
 
-    scanner.start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: 250,
-      },
-      async (decodedText) => {
-        try {
-          const ticketId = decodedText;
+    scanner
+      .start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: 250,
+        },
+        async (decodedText) => {
+          try {
+            const ticketId = decodedText;
 
-          const docRef = doc(db, "users", ticketId);
-          const docSnap = await getDoc(docRef);
+            const docRef = doc(db, "users", ticketId);
+            const docSnap = await getDoc(docRef);
 
-          if (!docSnap.exists()) {
-            setResult("❌ Invalid QR");
-            return;
+            if (!docSnap.exists()) {
+              setResult("❌ Invalid QR");
+              return;
+            }
+
+            const data = docSnap.data();
+
+            if (data.status === "used") {
+              setResult("⚠️ Already Scanned");
+            } else {
+              setResult("✅ Entry Allowed");
+
+              await updateDoc(docRef, {
+                status: "used",
+              });
+            }
+          } catch (error) {
+            console.log(error);
+            setResult("Error scanning");
           }
-
-          const data = docSnap.data();
-
-          if (data.status === "used") {
-            setResult("⚠️ Already Scanned");
-          } else {
-            setResult("✅ Entry Allowed");
-
-            await updateDoc(docRef, {
-              status: "used",
-            });
-          }
-        } catch (error) {
-          console.log(error);
-          setResult("Error scanning");
+        },
+        (errorMessage) => {
+          // ignore scan errors (important fix ✅)
         }
-      }
-    );
+      )
+      .catch((err) => {
+        console.log("Camera start error:", err);
+      });
 
     return () => {
-  try {
-    scanner.stop();
-  } catch (err) {
-    console.log("Scanner already stopped");
-  }
-};
+      scanner
+        .stop()
+        .then(() => {
+          console.log("Scanner stopped");
+        })
+        .catch(() => {
+          console.log("Scanner already stopped");
+        });
+    };
   }, []);
 
   return (
