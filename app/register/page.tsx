@@ -4,7 +4,7 @@ import { useState } from "react";
 import { db } from "../../lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import QRCode from "qrcode";
-import emailjs from "emailjs-com";
+import emailjs from "@emailjs/browser";
 
 export default function Home() {
   const [regNo, setRegNo] = useState("");
