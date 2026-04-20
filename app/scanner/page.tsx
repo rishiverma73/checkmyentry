@@ -5,12 +5,19 @@ import { Html5Qrcode } from "html5-qrcode";
 import { db } from "../../lib/firebase";
 import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Wifi, WifiOff } from "lucide-react";
 
 export default function Scanner() {
   const [result, setResult] = useState("");
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
+    // Track online status
+    const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
     let html5QrCode: Html5Qrcode | null = null;
     let startPromise: Promise<any> | null = null;
     
@@ -23,6 +30,10 @@ export default function Scanner() {
           { facingMode: "environment" },
           { fps: 10, qrbox: { width: 250, height: 250 } },
           async (decodedText) => {
+            if (!navigator.onLine) {
+              setResult("❌ Offline: Verification Requires Internet");
+              return;
+            }
             try {
               if (html5QrCode && html5QrCode.isScanning) {
                  html5QrCode.pause(true); // Pause scanning to prevent duplicates
@@ -76,6 +87,8 @@ export default function Scanner() {
     }, 100);
 
     return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
       clearTimeout(timer);
       if (startPromise && html5QrCode) {
         // Wait for the scanner to successfully boot up before shutting it down safely
@@ -97,7 +110,19 @@ export default function Scanner() {
       </Link>
       
       <div className="max-w-md w-full flex flex-col items-center text-center">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent mb-2">Ticket Scanner</h1>
+        <div className="flex items-center gap-2 mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">Ticket Scanner</h1>
+          {!isOnline && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-red-500/20 text-red-400 text-[10px] rounded-full border border-red-500/30 animate-pulse">
+              <WifiOff className="w-3 h-3" /> OFFLINE
+            </div>
+          )}
+          {isOnline && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] rounded-full border border-emerald-500/30">
+              <Wifi className="w-3 h-3" /> ONLINE
+            </div>
+          )}
+        </div>
         <p className="text-slate-400 mb-8 text-sm">Align the QR code within the frame to verify attendees.</p>
 
         <div className="bg-slate-900 border-4 border-slate-800 rounded-3xl p-4 shadow-2xl mb-8 w-full">
