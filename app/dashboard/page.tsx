@@ -20,7 +20,8 @@ import {
   MapPin,
   Clock,
   Settings2,
-  ExternalLink
+  ExternalLink,
+  ScanLine
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -170,6 +171,10 @@ export default function Dashboard() {
             </div>
           </Link>
           <div className="flex items-center gap-4">
+            <Link href="/scanner" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5 px-3 py-1.5 hover:bg-slate-50 rounded-lg">
+              <ScanLine className="w-4 h-4" />
+              Scanner
+            </Link>
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full text-sm font-medium text-slate-700">
               <UserIcon className="w-4 h-4" />
               {user.displayName || user.email}
@@ -191,13 +196,21 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold text-slate-900 mb-1">Organizer Dashboard</h1>
             <p className="text-slate-500">Manage your events and track registrations seamlessly.</p>
           </div>
-          <button 
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <Plus className="w-5 h-5" />
-            Create Event
-          </button>
+          <div className="flex items-center gap-3">
+             <Link href="/scanner">
+               <button className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
+                 <ScanLine className="w-5 h-5" />
+                 Scan Tickets
+               </button>
+             </Link>
+             <button 
+               onClick={() => setShowForm(true)}
+               className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+             >
+               <Plus className="w-5 h-5" />
+               Create Event
+             </button>
+          </div>
         </div>
 
         {/* Global Event Stats */}

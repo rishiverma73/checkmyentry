@@ -1,17 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "../../lib/AuthContext";
+import { useRouter } from "next/navigation";
 import { Html5Qrcode } from "html5-qrcode";
 import { db } from "../../lib/firebase";
 import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 import Link from "next/link";
-import { ArrowLeft, Wifi, WifiOff } from "lucide-react";
+import { ArrowLeft, Wifi, WifiOff, Loader2 } from "lucide-react";
 
 export default function Scanner() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [result, setResult] = useState("");
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
+
+  useEffect(() => {
+    // Only start scanner if authenticated
+    if (!user) return;
+
     // Track online status
     const updateOnlineStatus = () => setIsOnline(navigator.onLine);
     window.addEventListener('online', updateOnlineStatus);
@@ -102,6 +115,14 @@ export default function Scanner() {
       }
     };
   }, []);
+
+  if (authLoading || (!user && typeof window !== 'undefined')) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-6 relative font-sans">

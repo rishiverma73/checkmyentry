@@ -33,9 +33,6 @@ export default function Home() {
             <Link href="#how-it-works" className="hover:text-blue-600 transition-colors">How it Works</Link>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/scanner" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors hidden md:block">
-              Scanner Login
-            </Link>
             {!loading && user ? (
               <Link href="/dashboard">
                 <button className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-sm">
@@ -47,7 +44,7 @@ export default function Home() {
               <Link href="/login">
                 <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-sm">
                   <UserIcon className="w-4 h-4" />
-                  Login / Signup
+                  Organizer Login
                 </button>
               </Link>
             )}
@@ -98,12 +95,12 @@ export default function Home() {
                     </button>
                   </Link>
                 )}
-                <Link href="/scanner">
-                  <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-8 py-3.5 rounded-full font-semibold shadow-sm transition-all hover:-translate-y-0.5">
-                    Scan QR
-                    <ScanLine className="w-4 h-4" />
-                  </button>
-                </Link>
+                  <Link href="/scanner">
+                    <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-8 py-3.5 rounded-full font-semibold shadow-sm transition-all hover:-translate-y-0.5">
+                      Open Scanner
+                      <ScanLine className="w-4 h-4" />
+                    </button>
+                  </Link>
               </div>
               
             </motion.div>
@@ -259,8 +256,8 @@ export default function Home() {
           
           <div className="flex gap-6 text-sm font-medium text-slate-500">
             <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
-            <Link href="/register" className="hover:text-slate-900 transition-colors">Register</Link>
-            <Link href="/scanner" className="hover:text-slate-900 transition-colors">Scanner</Link>
+            <Link href="/login" className="hover:text-slate-900 transition-colors">Login</Link>
+            <Link href="/dashboard" className="hover:text-slate-900 transition-colors">Dashboard</Link>
           </div>
           
           <div className="text-slate-400 text-sm">

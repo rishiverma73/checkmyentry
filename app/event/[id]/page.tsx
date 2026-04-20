@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import { db } from "../../../lib/firebase";
 import { doc, getDoc, collection, setDoc } from "firebase/firestore";
 import jsPDF from "jspdf";
+import emailjs from "@emailjs/browser";
 import { motion } from "framer-motion";
 import { 
   CalendarDays, 
@@ -63,8 +64,8 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
     e.preventDefault();
     setErrorMsg("");
     
-    if (!name || !phone) {
-      setErrorMsg("Please provide your name and phone number.");
+    if (!name || !phone || !email) {
+      setErrorMsg("Please provide your name, phone and email address for ticket delivery.");
       return;
     }
 
@@ -87,6 +88,9 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
       setTicketId(newTicketId);
       setSuccess(true);
       
+      // AUTO DISPATCH EMAIL TICKET
+      sendTicketEmail(newTicketId, name, email, eventData);
+      
       setTimeout(() => {
         downloadTicketPDF(newTicketId, name, eventData);
       }, 500);
@@ -96,6 +100,31 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
       setErrorMsg("Failed to complete registration. Try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const sendTicketEmail = async (tid: string, attendee: string, attendeeEmail: string, eventInfo: any) => {
+    try {
+      // Configuration Placeholders - User must fill these in EmailJS Dashboard
+      const serviceID = "service_xxxxxxx"; // Replace with your Service ID
+      const templateID = "template_xxxxxxx"; // Replace with your Template ID
+      const publicKey = "xxxxxxxxxxxxxxxxx"; // Replace with your Public Key
+
+      const templateParams = {
+        to_email: attendeeEmail,
+        to_name: attendee,
+        event_name: eventInfo.eventName,
+        ticket_id: tid,
+        event_date: eventInfo.date,
+        event_time: eventInfo.time,
+        event_location: eventInfo.location,
+        qr_link: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${tid}`
+      };
+
+      await emailjs.send(serviceID, templateID, templateParams, publicKey);
+      console.log("Ticket email sent successfully!");
+    } catch (error) {
+      console.error("EmailJS Error:", error);
     }
   };
 
@@ -290,7 +319,7 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700 ml-1">Email Address (Optional)</label>
+                  <label className="text-sm font-semibold text-slate-700 ml-1">Email Address * (For Ticket)</label>
                   <div className="relative">
                     <Mail className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                     <input
