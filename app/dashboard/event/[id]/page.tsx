@@ -4,9 +4,9 @@ import { useEffect, useState, use } from "react";
 import { useAuth } from "../../../../lib/AuthContext";
 import { useRouter } from "next/navigation";
 import { db } from "../../../../lib/firebase";
-import { collection, query, where, getDocs, doc, getDoc, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, orderBy, deleteDoc, updateDoc } from "firebase/firestore";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   LogOut, 
   ArrowLeft,
@@ -17,7 +17,11 @@ import {
   Filter,
   Search,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Edit2,
+  Trash2,
+  Save,
+  X
 } from "lucide-react";
 import jsPDF from "jspdf";
 
@@ -35,6 +39,11 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  // Edit/Delete State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingReg, setEditingReg] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -86,6 +95,53 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
     const url = `${window.location.origin}/event/${eventId}`;
     navigator.clipboard.writeText(url);
     alert("Public Event Link Copied!");
+  };
+
+  const confirmDelete = async (regId: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete registration for ${name}?`)) return;
+    
+    setIsSaving(true);
+    try {
+      await deleteDoc(doc(db, "registrations", regId));
+      setRegistrations(prev => prev.filter(r => r.id !== regId));
+    } catch (error) {
+      console.error("Error deleting registration:", error);
+      alert("Failed to delete registration.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openEditModal = (reg: any) => {
+    setEditingReg({ ...reg });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateRegistration = async () => {
+    if (!editingReg) return;
+    
+    setIsSaving(true);
+    try {
+      const regRef = doc(db, "registrations", editingReg.id);
+      const updateData = {
+        attendeeName: editingReg.attendeeName,
+        phone: editingReg.phone,
+        email: editingReg.email || "",
+        status: editingReg.status
+      };
+      
+      await updateDoc(regRef, updateData);
+      
+      // Update local state
+      setRegistrations(prev => prev.map(r => r.id === editingReg.id ? { ...r, ...updateData } : r));
+      setShowEditModal(false);
+      setEditingReg(null);
+    } catch (error) {
+      console.error("Error updating registration:", error);
+      alert("Failed to update registration.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const exportCSV = () => {
@@ -247,13 +303,14 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
                   <th className="px-6 py-4">Attendee info</th>
                   <th className="px-6 py-4">Contact</th>
                   <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Registered</th>
+                  <th className="px-6 py-4">Registered</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
                 {filteredRegistrations.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-16 text-center text-slate-500">
+                    <td colSpan={6} className="px-6 py-16 text-center text-slate-500">
                       <div className="flex flex-col items-center justify-center">
                         <CalendarDays className="w-10 h-10 text-slate-300 mb-3" />
                         <p className="text-lg font-medium text-slate-600">No attendees yet</p>
@@ -275,8 +332,26 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
                           {reg.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right text-slate-500 text-xs font-medium">
+                      <td className="px-6 py-4 text-slate-500 text-xs font-medium">
                         {new Date(reg.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => openEditModal(reg)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => confirmDelete(reg.id, reg.attendeeName)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -287,6 +362,113 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
         </div>
 
       </main>
+
+      {/* Edit Registration Modal */}
+      <AnimatePresence>
+        {showEditModal && editingReg && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50"
+              onClick={() => !isSaving && setShowEditModal(false)}
+            />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden pointer-events-auto"
+              >
+                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                  <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <Edit2 className="w-5 h-5 text-blue-600" />
+                    Edit Registration
+                  </h3>
+                  <button 
+                    onClick={() => setShowEditModal(false)}
+                    disabled={isSaving}
+                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="p-6 space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-700 ml-1">Attendee Name</label>
+                    <input
+                      type="text"
+                      value={editingReg.attendeeName}
+                      onChange={(e) => setEditingReg({...editingReg, attendeeName: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-medium"
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-700 ml-1">Phone Number</label>
+                    <input
+                      type="text"
+                      value={editingReg.phone}
+                      onChange={(e) => setEditingReg({...editingReg, phone: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-700 ml-1">Email Address</label>
+                    <input
+                      type="email"
+                      value={editingReg.email || ""}
+                      onChange={(e) => setEditingReg({...editingReg, email: e.target.value})}
+                      placeholder="Optional"
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-700 ml-1 text-slate-500">Registration Status</label>
+                    <div className="flex gap-3 mt-1">
+                      {["Registered", "Checked In"].map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => setEditingReg({...editingReg, status})}
+                          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
+                            editingReg.status === status 
+                            ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200' 
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300'
+                          }`}
+                        >
+                          {status}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex gap-3">
+                    <button
+                      onClick={() => setShowEditModal(false)}
+                      disabled={isSaving}
+                      className="flex-1 px-6 py-3.5 rounded-xl font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleUpdateRegistration}
+                      disabled={isSaving}
+                      className="flex-[2] flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-70"
+                    >
+                      {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
