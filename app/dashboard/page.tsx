@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { useRouter } from "next/navigation";
 import { db } from "../../lib/firebase";
-import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy, updateDoc } from "firebase/firestore";
 import Link from "next/link";
+import { Html5Qrcode } from "html5-qrcode";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { 
@@ -23,7 +24,9 @@ import {
   Settings2,
   ExternalLink,
   ScanLine,
-  Trash2
+  Trash2,
+  Wifi,
+  WifiOff
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -55,6 +58,88 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState<any[]>([]);
   
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  
+  // Scanner State
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scanResult, setScanResult] = useState<{type: 'success'|'error'|'warning', text: string} | null>(null);
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    let html5QrCode: Html5Qrcode | null = null;
+    let startPromise: Promise<any> | null = null;
+
+    if (isScannerOpen) {
+      setScanResult(null); // reset
+      const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      updateOnlineStatus();
+
+      const timer = setTimeout(() => {
+        html5QrCode = new Html5Qrcode("dashboard-reader");
+
+        startPromise = html5QrCode
+          .start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            async (decodedText) => {
+              if (!navigator.onLine) {
+                setScanResult({ type: 'error', text: "Verification Requires Internet" });
+                return;
+              }
+              try {
+                if (html5QrCode && html5QrCode.isScanning) {
+                   html5QrCode.pause(true); 
+                }
+                setScanResult({ type: 'warning', text: "Verifying Ticket..." });
+
+                const q = query(collection(db, "registrations"), where("ticketId", "==", decodedText));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                  setScanResult({ type: 'error', text: "Invalid Ticket / Not Found" });
+                  setTimeout(() => html5QrCode?.resume(), 2500);
+                  return;
+                }
+
+                const ticketDoc = querySnapshot.docs[0];
+                const data = ticketDoc.data();
+
+                if (data.status === "Used" || data.status === "used" || data.status === "Checked In") {
+                  setScanResult({ type: 'warning', text: `Already Checked In: ${data.attendeeName || data.name}` });
+                  setTimeout(() => html5QrCode?.resume(), 2500);
+                } else {
+                  setScanResult({ type: 'success', text: `Access Granted: ${data.attendeeName || data.name}` });
+                  await updateDoc(doc(db, "registrations", ticketDoc.id), { status: "Checked In" });
+                  fetchEvents(user?.uid || ""); // Auto update dashboard metric
+                  setTimeout(() => html5QrCode?.resume(), 3000);
+                }
+              } catch (error) {
+                console.error(error);
+                setScanResult({ type: 'error', text: "Error processing scan" });
+                setTimeout(() => html5QrCode?.resume(), 2500);
+              }
+            },
+            (err) => {}
+          )
+          .catch((err) => {
+            console.error("Camera start error:", err);
+            setScanResult({ type: 'error', text: "Camera permissions denied." });
+          });
+      }, 100);
+      
+      return () => {
+        window.removeEventListener('online', updateOnlineStatus);
+        window.removeEventListener('offline', updateOnlineStatus);
+        clearTimeout(timer);
+        if (startPromise && html5QrCode) {
+          startPromise.then(() => {
+            html5QrCode?.stop().then(() => html5QrCode?.clear()).catch(console.error);
+          }).catch(console.error);
+        }
+      };
+    }
+  }, [isScannerOpen]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -238,10 +323,13 @@ export default function Dashboard() {
             </div>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/scanner" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5 px-3 py-1.5 hover:bg-slate-50 rounded-lg">
+            <button 
+              onClick={() => setIsScannerOpen(true)}
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5 px-3 py-1.5 hover:bg-slate-50 rounded-lg"
+            >
               <ScanLine className="w-4 h-4" />
               Scanner
-            </Link>
+            </button>
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full text-sm font-medium text-slate-700">
               <UserIcon className="w-4 h-4" />
               {user.displayName || user.email}
@@ -264,12 +352,13 @@ export default function Dashboard() {
             <p className="text-slate-500">Manage your events and track registrations seamlessly.</p>
           </div>
           <div className="flex items-center gap-3">
-             <Link href="/scanner">
-               <button className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
-                 <ScanLine className="w-5 h-5" />
-                 Scan Tickets
-               </button>
-             </Link>
+             <button 
+               onClick={() => setIsScannerOpen(true)}
+               className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+             >
+               <ScanLine className="w-5 h-5" />
+               Scan Tickets
+             </button>
              <button 
                onClick={() => setShowForm(true)}
                className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -575,6 +664,55 @@ export default function Dashboard() {
                         </>
                       )}
                     </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+        
+        {/* Global Modal Scanner */}
+        {isScannerOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50"
+            />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden flex flex-col relative"
+              >
+                <div className="px-6 py-4 flex justify-between items-center bg-slate-900 text-white shrink-0">
+                  <div className="flex items-center gap-2">
+                    <ScanLine className="w-5 h-5 text-blue-400" />
+                    <h3 className="font-bold">Global Scanner</h3>
+                  </div>
+                  <button 
+                    onClick={() => setIsScannerOpen(false)}
+                    className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="p-6 bg-slate-950 flex flex-col items-center">
+                  <div className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden border-4 border-slate-800 shadow-inner mb-6">
+                    <div id="dashboard-reader" className="w-full h-full"></div>
+                  </div>
+                  
+                  {/* Toast/Status Readout */}
+                  <div className={`w-full p-4 rounded-xl font-medium text-center text-sm border shadow-sm transition-all ${
+                    !scanResult ? 'bg-slate-800 text-slate-300 border-slate-700' :
+                    scanResult.type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' :
+                    scanResult.type === 'warning' ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' :
+                    'bg-red-500/20 text-red-400 border-red-500/50'
+                  }`}>
+                    {scanResult ? scanResult.text : "Awaiting Scan..."}
                   </div>
                 </div>
               </motion.div>
