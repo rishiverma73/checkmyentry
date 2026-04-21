@@ -129,10 +129,15 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
 
   const sendTicketEmail = async (tid: string, attendee: string, attendeeEmail: string, eventInfo: any) => {
     try {
-      // Configuration Placeholders - User must fill these in EmailJS Dashboard
-      const serviceID = "service_xxxxxxx"; // Replace with your Service ID
-      const templateID = "template_xxxxxxx"; // Replace with your Template ID
-      const publicKey = "xxxxxxxxxxxxxxxxx"; // Replace with your Public Key
+      // Configuration should be provided via environment variables in .env.local
+      const serviceID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+      const templateID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+      if (!serviceID || !templateID || !publicKey) {
+        console.error("EmailJS credentials are missing! Please add NEXT_PUBLIC_EMAILJS_SERVICE_ID, NEXT_PUBLIC_EMAILJS_TEMPLATE_ID, and NEXT_PUBLIC_EMAILJS_PUBLIC_KEY to your .env.local file.");
+        return; // Exit silently to user, but logged to console.
+      }
 
       const templateParams = {
         to_email: attendeeEmail,
