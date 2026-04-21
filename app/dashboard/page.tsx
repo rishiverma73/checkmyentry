@@ -7,6 +7,7 @@ import { db } from "../../lib/firebase";
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy } from "firebase/firestore";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { 
   LogOut, 
   Plus, 
@@ -50,6 +51,8 @@ export default function Dashboard() {
   
   // Dashboard Metrics
   const [todayRegs, setTodayRegs] = useState(0);
+  const [checkedInCount, setCheckedInCount] = useState(0);
+  const [chartData, setChartData] = useState<any[]>([]);
   
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -80,6 +83,8 @@ export default function Dashboard() {
       const now = new Date();
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
       let lifetimeTodayRegs = 0;
+      let lifetimeCheckedIn = 0;
+      const dateMap: Record<string, number> = {};
 
       // We process sequentially to fetch registration counts per event
       for (const eventDoc of querySnapshot.docs) {
@@ -91,9 +96,18 @@ export default function Dashboard() {
         totalLifetimeRegs += count;
         
         regSnap.forEach(d => {
-           if (new Date(d.data().createdAt).getTime() >= startOfToday) {
+           const regData = d.data();
+           
+           if (new Date(regData.createdAt).getTime() >= startOfToday) {
              lifetimeTodayRegs++;
            }
+           
+           if (regData.status === "Checked In" || regData.checkedIn === true) {
+             lifetimeCheckedIn++;
+           }
+           
+           const dateStr = new Date(regData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+           dateMap[dateStr] = (dateMap[dateStr] || 0) + 1;
         });
         
         allEvents.push({ 
@@ -105,9 +119,16 @@ export default function Dashboard() {
       
       allEvents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
+      const finalChartData = Object.keys(dateMap).map(date => ({
+        name: date,
+        registrations: dateMap[date]
+      })).sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
+      
       setEvents(allEvents);
       setTotalRegs(totalLifetimeRegs);
       setTodayRegs(lifetimeTodayRegs);
+      setCheckedInCount(lifetimeCheckedIn);
+      setChartData(finalChartData);
     } catch (error) {
       console.error("Error fetching events:", error);
     } finally {
@@ -260,21 +281,53 @@ export default function Dashboard() {
         </div>
 
         {/* Global Event Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
             <p className="text-slate-500 text-sm font-medium mb-1">Total Active Events</p>
-            <p className="text-4xl font-bold text-slate-900">{events.length}</p>
+            <p className="text-3xl font-bold text-slate-900">{events.length}</p>
           </div>
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
             <p className="text-slate-500 text-sm font-medium mb-1">Lifetime Registrations</p>
-            <p className="text-4xl font-bold text-emerald-600">{totalRegs}</p>
+            <p className="text-3xl font-bold text-emerald-600">{totalRegs}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center relative overflow-hidden">
+            <p className="text-slate-500 text-sm font-medium mb-1">Total Checked-In</p>
+            <p className="text-3xl font-bold text-purple-600">{checkedInCount}</p>
           </div>
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5"><UserIcon className="w-24 h-24 text-blue-600" /></div>
             <p className="text-slate-500 text-sm font-medium mb-1">Today's Registrations</p>
-            <p className="text-4xl font-bold text-blue-600">{todayRegs}</p>
+            <p className="text-3xl font-bold text-blue-600">{todayRegs}</p>
           </div>
         </div>
+        
+        {/* Analytics Growth Chart */}
+        {chartData.length > 0 && (
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm mb-10">
+            <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
+              Registration Growth
+            </h2>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRegs" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Area type="monotone" dataKey="registrations" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorRegs)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         {/* Events Grid */}
         <div className="space-y-6">

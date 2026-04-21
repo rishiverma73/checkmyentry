@@ -82,6 +82,19 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
 
     setSubmitting(true);
     try {
+      // Duplicate Registration Check
+      const phoneCheckQ = query(
+        collection(db, "registrations"), 
+        where("eventId", "==", eventId),
+        where("phone", "==", phone)
+      );
+      const phoneCheckSnap = await getDocs(phoneCheckQ);
+      if (!phoneCheckSnap.empty) {
+        setErrorMsg("A registration with this phone number already exists for this event.");
+        setSubmitting(false);
+        return;
+      }
+
       const newTicketId = Math.random().toString(36).substring(2, 12).toUpperCase();
       
       const regDocRef = doc(collection(db, "registrations"));
@@ -273,13 +286,20 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
               </div>
               <div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-2">You're In!</h2>
-                <p className="text-slate-500 max-w-sm mb-6">Your registration is confirmed. Your PDF ticket is downloading automatically.</p>
+                <p className="text-slate-500 max-w-sm mb-6">Your registration is confirmed. Screenshot your code or check your email.</p>
               </div>
-              <div className="bg-slate-50 border border-slate-100 p-6 rounded-2xl w-full max-w-sm">
-                <p className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Ticket ID</p>
+              <div className="bg-slate-50 border border-slate-100 p-6 rounded-2xl w-full max-w-sm flex flex-col items-center">
+                <p className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">Your Entry Code</p>
+                
+                {/* Live QR Render */}
+                <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 mb-4 inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${ticketId}`} alt="Ticket QR Code" className="w-[150px] h-[150px]" />
+                </div>
+                
                 <p className="text-2xl font-mono font-bold text-slate-900 tracking-widest">{ticketId}</p>
               </div>
-              <button 
+              <button  
                 onClick={() => downloadTicketPDF(ticketId, name, eventData)}
                 className="text-blue-600 font-medium hover:underline text-sm"
               >
