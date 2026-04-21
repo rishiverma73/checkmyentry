@@ -11,11 +11,13 @@ import {
   LogOut, 
   ArrowLeft,
   Users,
-  Copy,
-  ExternalLink,
   CalendarDays,
   Loader2,
-  Download
+  Download,
+  Filter,
+  Search,
+  Copy,
+  ExternalLink
 } from "lucide-react";
 import jsPDF from "jspdf";
 
@@ -29,6 +31,10 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
   const [eventData, setEventData] = useState<any>(null);
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -113,6 +119,15 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
     document.body.removeChild(link);
   };
 
+  const filteredRegistrations = registrations.filter(reg => {
+    const matchesSearch = 
+      reg.attendeeName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      reg.phone.includes(searchQuery);
+    
+    if (statusFilter === "All") return matchesSearch;
+    return matchesSearch && reg.status === statusFilter;
+  });
+
   if (authLoading || !user || loading || !eventData) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -191,11 +206,37 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
 
         {/* Attendees Data Table */}
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
               <Users className="w-5 h-5 text-blue-500" />
               Attendee Roster
             </h2>
+            
+            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input 
+                  type="text" 
+                  placeholder="Search name or phone..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full sm:w-64 bg-white"
+                />
+              </div>
+              
+              <div className="relative">
+                <Filter className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <select 
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="pl-9 pr-8 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none bg-white font-medium text-slate-700 w-full sm:w-auto cursor-pointer"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Registered">Registered</option>
+                  <option value="Checked In">Checked In</option>
+                </select>
+              </div>
+            </div>
           </div>
           
           <div className="overflow-x-auto">
@@ -210,7 +251,7 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {registrations.length === 0 ? (
+                {filteredRegistrations.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-16 text-center text-slate-500">
                       <div className="flex flex-col items-center justify-center">
@@ -221,7 +262,7 @@ export default function OrganizerEventDashboard({ params }: { params: Promise<{ 
                     </td>
                   </tr>
                 ) : (
-                  registrations.map((reg) => (
+                  filteredRegistrations.map((reg) => (
                     <tr key={reg.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-6 py-4 font-mono text-slate-500 font-medium">#{reg.ticketId}</td>
                       <td className="px-6 py-4 font-semibold text-slate-900">{reg.attendeeName}</td>

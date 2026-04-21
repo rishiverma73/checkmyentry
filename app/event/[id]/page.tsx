@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import { db } from "../../../lib/firebase";
-import { doc, getDoc, collection, setDoc } from "firebase/firestore";
+import { doc, getDoc, collection, setDoc, getDocs, query, where } from "firebase/firestore";
 import jsPDF from "jspdf";
 import emailjs from "@emailjs/browser";
 import { motion } from "framer-motion";
@@ -28,6 +28,7 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
   const [eventData, setEventData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isFull, setIsFull] = useState(false);
 
   // Form State
   const [name, setName] = useState("");
@@ -48,7 +49,17 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        setEventData({ id: docSnap.id, ...docSnap.data() });
+        const evData = docSnap.data();
+        setEventData({ id: docSnap.id, ...evData });
+        
+        // Check Capacity
+        if (evData.maxAttendees && evData.maxAttendees > 0) {
+          const regQ = query(collection(db, "registrations"), where("eventId", "==", eventId));
+          const regSnap = await getDocs(regQ);
+          if (regSnap.docs.length >= evData.maxAttendees) {
+            setIsFull(true);
+          }
+        }
       } else {
         setNotFound(true);
       }
@@ -275,6 +286,16 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
                 Download PDF Again
               </button>
             </motion.div>
+          ) : isFull ? (
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-10">
+              <div className="w-20 h-20 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-2">
+                <AlertCircle className="w-10 h-10" />
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900">Sold Out</h2>
+              <p className="text-slate-500 max-w-sm">
+                We're sorry, but this event has reached its maximum capacity of {eventData.maxAttendees} attendees.
+              </p>
+            </div>
           ) : (
             <>
               <div className="mb-8">

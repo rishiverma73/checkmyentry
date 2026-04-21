@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { useRouter } from "next/navigation";
 import { db } from "../../lib/firebase";
-import { collection, query, where, getDocs, doc, setDoc, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy } from "firebase/firestore";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -21,7 +21,8 @@ import {
   Clock,
   Settings2,
   ExternalLink,
-  ScanLine
+  ScanLine,
+  Trash2
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -45,6 +46,12 @@ export default function Dashboard() {
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [isPaid, setIsPaid] = useState(false);
+  const [maxAttendees, setMaxAttendees] = useState("");
+  
+  // Dashboard Metrics
+  const [todayRegs, setTodayRegs] = useState(0);
+  
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -70,6 +77,10 @@ export default function Dashboard() {
       
       const allEvents: any[] = [];
       
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      let lifetimeTodayRegs = 0;
+
       // We process sequentially to fetch registration counts per event
       for (const eventDoc of querySnapshot.docs) {
         const evData = eventDoc.data();
@@ -78,6 +89,12 @@ export default function Dashboard() {
         const regSnap = await getDocs(regQ);
         const count = regSnap.docs.length;
         totalLifetimeRegs += count;
+        
+        regSnap.forEach(d => {
+           if (new Date(d.data().createdAt).getTime() >= startOfToday) {
+             lifetimeTodayRegs++;
+           }
+        });
         
         allEvents.push({ 
           id: eventDoc.id, 
@@ -90,6 +107,7 @@ export default function Dashboard() {
       
       setEvents(allEvents);
       setTotalRegs(totalLifetimeRegs);
+      setTodayRegs(lifetimeTodayRegs);
     } catch (error) {
       console.error("Error fetching events:", error);
     } finally {
@@ -120,6 +138,7 @@ export default function Dashboard() {
         time,
         location: location || "TBA",
         isPaid,
+        maxAttendees: maxAttendees ? parseInt(maxAttendees) : 0, // 0 = unlimited
         status: "Upcoming",
         createdAt: new Date().toISOString()
       });
@@ -135,6 +154,7 @@ export default function Dashboard() {
         setTime("");
         setLocation("");
         setIsPaid(false);
+        setMaxAttendees("");
         setMessage(null);
       }, 2000);
 
@@ -143,6 +163,32 @@ export default function Dashboard() {
       setMessage({ type: 'error', text: "Error occurred while creating event." });
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const deleteEvent = async (eventId: string, eventName: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${eventName}"? This action cannot be undone.`)) return;
+    
+    setDeletingId(eventId);
+    try {
+      // Delete the event doc
+      await deleteDoc(doc(db, "events", eventId));
+      
+      // Fetch and delete all registrations associated with this event
+      const regQ = query(collection(db, "registrations"), where("eventId", "==", eventId));
+      const regSnap = await getDocs(regQ);
+      
+      const deletePromises = regSnap.docs.map(regDoc => deleteDoc(doc(db, "registrations", regDoc.id)));
+      await Promise.all(deletePromises);
+      
+      setEvents(prev => prev.filter(e => e.id !== eventId));
+      setTotalRegs(prev => prev - regSnap.docs.length); // Rough update locally
+      fetchEvents(user?.uid || ""); // Refetch to guarantee accuracy
+    } catch (err) {
+      console.error("Error deleting event:", err);
+      alert("Failed to delete event.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -214,7 +260,7 @@ export default function Dashboard() {
         </div>
 
         {/* Global Event Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-2 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
             <p className="text-slate-500 text-sm font-medium mb-1">Total Active Events</p>
             <p className="text-4xl font-bold text-slate-900">{events.length}</p>
@@ -222,6 +268,11 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
             <p className="text-slate-500 text-sm font-medium mb-1">Lifetime Registrations</p>
             <p className="text-4xl font-bold text-emerald-600">{totalRegs}</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5"><UserIcon className="w-24 h-24 text-blue-600" /></div>
+            <p className="text-slate-500 text-sm font-medium mb-1">Today's Registrations</p>
+            <p className="text-4xl font-bold text-blue-600">{todayRegs}</p>
           </div>
         </div>
 
@@ -261,12 +312,22 @@ export default function Dashboard() {
                 >
                   <div className="p-6 flex-1">
                     <div className="flex justify-between items-start mb-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                        {event.status}
-                      </span>
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
-                        {event.isPaid ? "Paid" : "Free"}
-                      </span>
+                      <div className="flex gap-2">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                          {event.status}
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+                          {event.isPaid ? "Paid" : "Free"}
+                        </span>
+                      </div>
+                      <button 
+                        onClick={() => deleteEvent(event.id, event.eventName)}
+                        disabled={deletingId === event.id}
+                        className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors disabled:opacity-50"
+                        title="Delete Event"
+                      >
+                         {deletingId === event.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                      </button>
                     </div>
 
                     <h3 className="text-xl font-bold text-slate-900 mb-2">{event.eventName}</h3>
@@ -412,6 +473,18 @@ export default function Dashboard() {
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                         placeholder="e.g. Auditorium Hall B or Zoom Link"
+                        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                      />
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-slate-700 ml-1">Max Attendees (Optional)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={maxAttendees}
+                        onChange={(e) => setMaxAttendees(e.target.value)}
+                        placeholder="e.g. 500 (Leave blank for unlimited)"
                         className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
                       />
                     </div>
