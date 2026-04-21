@@ -346,19 +346,12 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-1">Organizer Dashboard</h1>
             <p className="text-slate-500">Manage your events and track registrations seamlessly.</p>
           </div>
           <div className="flex items-center gap-3">
-             <button 
-               onClick={() => setIsScannerOpen(true)}
-               className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-             >
-               <ScanLine className="w-5 h-5" />
-               Scan Tickets
-             </button>
              <button 
                onClick={() => setShowForm(true)}
                className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -367,6 +360,29 @@ export default function Dashboard() {
                Create Event
              </button>
           </div>
+        </div>
+
+        {/* Global Scanner Master Banner */}
+        <div className="bg-gradient-to-tr from-slate-900 to-slate-800 rounded-3xl p-8 mb-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between text-white border border-slate-700">
+           <div className="absolute top-0 right-10 p-8 opacity-5 rotate-12 pointer-events-none">
+             <ScanLine className="w-64 h-64" />
+           </div>
+           <div className="z-10 mb-6 md:mb-0 relative">
+             <div className="inline-flex items-center px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs font-semibold uppercase tracking-wider mb-4 backdrop-blur-md border border-blue-500/30">
+               <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span> System Live
+             </div>
+             <h2 className="text-3xl md:text-4xl font-bold mb-3 tracking-tight">Gate Scanning Mode</h2>
+             <p className="text-slate-300 text-lg max-w-lg font-medium">Instantly convert this device into a high-speed ticket scanner. Validates entry and syncs live.</p>
+           </div>
+           <div className="z-10 w-full md:w-auto relative">
+             <button 
+               onClick={() => setIsScannerOpen(true)}
+               className="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-500/20 border border-blue-500 px-8 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-opacity active:scale-[0.98]"
+             >
+               <ScanLine className="w-6 h-6" />
+               Start Scanning Now
+             </button>
+           </div>
         </div>
 
         {/* Global Event Stats */}
