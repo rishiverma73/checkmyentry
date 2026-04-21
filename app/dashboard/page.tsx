@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { useRouter } from "next/navigation";
-import { db } from "../../lib/firebase";
+import { db, storage } from "../../lib/firebase";
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Link from "next/link";
 import { Html5Qrcode } from "html5-qrcode";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,7 +27,12 @@ import {
   ScanLine,
   Trash2,
   Wifi,
-  WifiOff
+  WifiOff,
+  Layers,
+  ListPlus,
+  FileSpreadsheet,
+  UploadCloud,
+  Trash
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -41,6 +47,9 @@ export default function Dashboard() {
 
   // Form State
   const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<'basic' | 'form' | 'verification'>('basic');
+  const [customFields, setCustomFields] = useState<any[]>([]);
+  const [excelFile, setExcelFile] = useState<File | null>(null);
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState<{type: 'error' | 'success', text: string} | null>(null);
 
@@ -231,6 +240,16 @@ export default function Dashboard() {
     setMessage(null);
 
     try {
+      let verificationFileUrl = null;
+      let verificationFileName = null;
+      if (excelFile) {
+        setMessage({ type: 'success', text: "Uploading Verification List..." });
+        const fileRef = ref(storage, `verifications/${user?.uid}_${Date.now()}_${excelFile.name}`);
+        await uploadBytes(fileRef, excelFile);
+        verificationFileUrl = await getDownloadURL(fileRef);
+        verificationFileName = excelFile.name;
+      }
+      
       const eventId = Math.random().toString(36).substring(2, 12);
       
       await setDoc(doc(db, "events", eventId), {
@@ -246,6 +265,9 @@ export default function Dashboard() {
         isPaid,
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : 0, // 0 = unlimited
         status: "Upcoming",
+        customFields,
+        verificationFileUrl,
+        verificationFileName,
         createdAt: new Date().toISOString()
       });
 
@@ -262,6 +284,9 @@ export default function Dashboard() {
         setIsPaid(false);
         setMaxAttendees("");
         setMessage(null);
+        setCustomFields([]);
+        setExcelFile(null);
+        setActiveTab('basic');
       }, 2000);
 
     } catch (error) {
@@ -568,7 +593,14 @@ export default function Dashboard() {
                   </button>
                 </div>
                 
-                <div className="p-6 overflow-y-auto">
+                
+                <div className="flex border-b border-slate-200 shrink-0 bg-white">
+                  <button onClick={() => setActiveTab('basic')} className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'basic' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Basic Info</button>
+                  <button onClick={() => setActiveTab('form')} className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'form' ? 'border-purple-600 text-purple-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Form Builder</button>
+                  <button onClick={() => setActiveTab('verification')} className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'verification' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Verification</button>
+                </div>
+
+                <div className="p-6 overflow-y-auto w-full">
                   {message && (
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
@@ -578,6 +610,139 @@ export default function Dashboard() {
                       {message.type === 'error' ? <X className="w-5 h-5 shrink-0" /> : <CheckCircle2 className="w-5 h-5 shrink-0" />}
                       <span className="text-sm font-medium">{message.text}</span>
                     </motion.div>
+                  )}
+
+                  {activeTab === 'basic' && (
+                    <div className="space-y-5">
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-slate-700 ml-1">Event Name</label>
+                        <input type="text" value={eventName} onChange={(e) => setEventName(e.target.value)} placeholder="e.g. Next.js Genesis Meetup" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-slate-700 ml-1">Description</label>
+                        <textarea value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Short overview..." rows={3} className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1"><label className="text-sm font-medium text-slate-700 ml-1">Date</label><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" /></div>
+                        <div className="space-y-1"><label className="text-sm font-medium text-slate-700 ml-1">Time</label><input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" /></div>
+                      </div>
+                      <div className="space-y-1"><label className="text-sm font-medium text-slate-700 ml-1">Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Zoom Link" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" /></div>
+                      <div className="space-y-1"><label className="text-sm font-medium text-slate-700 ml-1">Max Attendees</label><input type="number" min="1" value={maxAttendees} onChange={(e) => setMaxAttendees(e.target.value)} placeholder="Leave blank for unlimited" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" /></div>
+                      <div className="space-y-1 pt-2">
+                         <label className="text-sm font-medium text-slate-700 ml-1">Ticketing</label>
+                         <div className="flex gap-4 mt-2">
+                           <label className="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl flex-1 hover:border-blue-300"><input type="radio" checked={!isPaid} onChange={() => setIsPaid(false)} className="w-4 h-4 text-blue-600"/><span>Free</span></label>
+                           <label className="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl flex-1 hover:border-blue-300"><input type="radio" checked={isPaid} onChange={() => setIsPaid(true)} className="w-4 h-4 text-blue-600"/><span>Paid Ticket</span></label>
+                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === 'form' && (
+                    <div className="space-y-6">
+                      <div className="bg-purple-50 text-purple-800 p-4 rounded-xl text-sm border border-purple-100 flex items-start gap-3">
+                        <Layers className="w-5 h-5 shrink-0 text-purple-600" />
+                        <div>
+                          <strong>Dynamic Form Builder</strong>
+                          <p>Add custom questions, file uploads, and specific registration number verification fields for your attendees.</p>
+                        </div>
+                      </div>
+
+                      {customFields.map((field, index) => (
+                        <div key={field.id} className="bg-slate-50 border border-slate-200 p-4 rounded-xl relative group">
+                          <button onClick={() => setCustomFields(prev => prev.filter((_, i) => i !== index))} className="absolute top-3 right-3 text-slate-400 hover:text-red-500">
+                            <Trash className="w-4 h-4" />
+                          </button>
+                          
+                          <div className="grid grid-cols-2 gap-4 mb-3 pr-8">
+                            <div>
+                               <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1 block">Field Label</label>
+                               <input type="text" value={field.label} onChange={(e) => { const newF = [...customFields]; newF[index].label = e.target.value; setCustomFields(newF); }} className="w-full text-sm py-2 px-3 border border-slate-200 rounded-lg text-slate-900" placeholder="e.g. T-Shirt Size" />
+                            </div>
+                            <div>
+                               <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1 block">Field Type</label>
+                               <select value={field.type} onChange={(e) => { const newF = [...customFields]; newF[index].type = e.target.value; setCustomFields(newF); }} className="w-full text-sm py-2 px-3 border border-slate-200 rounded-lg text-slate-900 bg-white">
+                                 <option value="text">Short Answer</option>
+                                 <option value="radio">Radio Options</option>
+                                 <option value="dropdown">Dropdown Select</option>
+                                 <option value="file">File Upload (Proof)</option>
+                                 <option value="verification">ID Verification Match</option>
+                               </select>
+                            </div>
+                          </div>
+
+                          {(field.type === 'radio' || field.type === 'dropdown') && (
+                            <div className="mb-3">
+                              <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1 block">Options (comma separated)</label>
+                              <input type="text" value={field.options?.join(', ') || ''} onChange={(e) => { const newF = [...customFields]; newF[index].options = e.target.value.split(',').map(s=>s.trim()); setCustomFields(newF); }} className="w-full text-sm py-2 px-3 border border-slate-200 rounded-lg text-slate-900" placeholder="Small, Medium, Large" />
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between border-t border-slate-200 pt-3 mt-3">
+                            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                               <input type="checkbox" checked={field.required} onChange={(e) => { const newF = [...customFields]; newF[index].required = e.target.checked; setCustomFields(newF); }} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" /> Required
+                            </label>
+
+                            <div className="flex items-center gap-2">
+                               <span className="text-xs font-semibold text-slate-500">Show If:</span>
+                               <select value={field.condition?.dependsOn || ""} onChange={(e) => { const newF = [...customFields]; newF[index].condition = { dependsOn: e.target.value, value: "" }; setCustomFields(newF); }} className="text-xs py-1 px-2 border border-slate-200 rounded bg-white">
+                                 <option value="">Always Show</option>
+                                 {customFields.slice(0, index).filter(f => f.type === 'radio' || f.type === 'dropdown').map(f => (<option key={f.id} value={f.id}>Match {f.label}</option>))}
+                               </select>
+                               {field.condition?.dependsOn && (
+                                  <input type="text" value={field.condition.value} onChange={(e) => { const newF = [...customFields]; newF[index].condition.value = e.target.value; setCustomFields(newF); }} className="text-xs py-1 px-2 border border-slate-200 rounded w-24" placeholder="Value is..." />
+                               )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      <button onClick={() => setCustomFields([...customFields, { id: Math.random().toString(36).substring(2,9), label: '', type: 'text', required: true }])} className="w-full py-3 border-2 border-dashed border-purple-200 text-purple-600 font-semibold rounded-xl hover:bg-purple-50 transition-colors flex justify-center items-center gap-2">
+                        <ListPlus className="w-5 h-5" /> Add Field
+                      </button>
+                    </div>
+                  )}
+
+                  {activeTab === 'verification' && (
+                    <div className="space-y-6">
+                      <div className="bg-emerald-50 text-emerald-800 p-4 rounded-xl text-sm border border-emerald-100 flex items-start gap-3">
+                        <FileSpreadsheet className="w-5 h-5 shrink-0 text-emerald-600" />
+                        <div>
+                          <strong>Excel Waitlist Verification</strong>
+                          <p>Upload a .xlsx file containing a column named <b>"Registration Number"</b>. If you add a "Verification Match" field in your form, attendees must provide a number that exists in this Excel file to secure a ticket.</p>
+                        </div>
+                      </div>
+
+                      <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-emerald-50/50 transition-colors relative">
+                        <input type="file" id="excel-upload" accept=".xlsx" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={(e) => e.target.files && setExcelFile(e.target.files[0])} />
+                        <div className="flex flex-col items-center pointer-events-none">
+                          <div className="w-16 h-16 bg-white shadow-sm rounded-full flex items-center justify-center mb-4 border border-slate-200">
+                             <UploadCloud className="w-8 h-8 text-emerald-500" />
+                          </div>
+                          <span className="text-slate-900 font-semibold">{excelFile ? excelFile.name : "Click to Upload .xlsx Database"}</span>
+                          <span className="text-slate-500 text-sm mt-1">{excelFile ? (`${(excelFile.size / 1024).toFixed(1)} KB`) : "Max 5MB"}</span>
+                        </div>
+                      </div>
+                      
+                      {excelFile && (
+                        <button onClick={() => setExcelFile(null)} className="text-sm font-medium text-red-500 hover:underline flex items-center justify-center w-full">
+                          Remove File
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="mt-8 pt-4 border-t border-slate-100">
+                    <button onClick={createEvent} disabled={generating} className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed">
+                      {generating ? (
+                        <><Loader2 className="w-5 h-5 animate-spin" /> Saving Configuration...</>
+                      ) : (
+                        <><QrCode className="w-5 h-5 shrink-0" /> Publish Event</>
+                      )}
+                    </button>
+                  </div>
+                </div>
+\n              </motion.div>
                   )}
 
                   <div className="space-y-5">

@@ -32,6 +32,7 @@ import {
   X,
   CheckCircle2,
   AlertTriangle,
+  ShieldCheck,
   MapPin,
   Clock,
   ChevronDown,
@@ -125,7 +126,8 @@ export default function OrganizerEventDashboard({
 
   const exportCSV = () => {
     if (registrations.length === 0) return;
-    const headers = ["Ticket ID", "Attendee Name", "Phone", "Email", "Status", "Date Registered"];
+    const customHeaders = eventData?.customFields?.map((f: any) => f.label) || [];
+    const headers = ["Ticket ID", "Attendee Name", "Phone", "Email", "Status", ...customHeaders, "Verified", "Date Registered"];
     let csvContent = headers.join(",") + "\n";
     registrations.forEach((r) => {
       const row = [
@@ -134,6 +136,8 @@ export default function OrganizerEventDashboard({
         `"${r.phone}"`,
         `"${r.email || ""}"`,
         r.status,
+        ...customHeaders.map((header: string) => `"${(r.responses && r.responses[header]) || ""}"`),
+        r.verified ? 'Yes' : 'No',
         new Date(r.createdAt).toLocaleString(),
       ];
       csvContent += row.join(",") + "\n";
@@ -404,6 +408,9 @@ export default function OrganizerEventDashboard({
                   <th className="px-6 py-4">Ticket / ID</th>
                   <th className="px-6 py-4">Attendee Info</th>
                   <th className="px-6 py-4">Contact</th>
+                  {eventData?.customFields?.map((f: any) => (
+                    <th key={f.id} className="px-6 py-4">{f.label}</th>
+                  ))}
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Registered</th>
                   <th className="px-6 py-4 text-center">Actions</th>
@@ -448,6 +455,21 @@ export default function OrganizerEventDashboard({
                           {reg.email || "—"}
                         </div>
                       </td>
+                      {eventData?.customFields?.map((f: any) => {
+                         const val = reg.responses ? reg.responses[f.label] : "";
+                         const isLink = typeof val === 'string' && val.startsWith('http');
+                         return (
+                           <td key={f.id} className="px-6 py-4 max-w-[200px] truncate text-slate-600">
+                              {isLink ? (
+                                <a href={val} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center gap-1 text-xs font-semibold bg-blue-50 py-1 px-2 rounded-lg w-max">
+                                  <ExternalLink className="w-3 h-3" /> View Proof
+                                </a>
+                              ) : (
+                                val || "—"
+                              )}
+                           </td>
+                         )
+                      })}
                       <td className="px-6 py-4">
                         <span
                           className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
@@ -461,6 +483,11 @@ export default function OrganizerEventDashboard({
                           ) : null}
                           {reg.status}
                         </span>
+                        {reg.verified !== undefined && (
+                          <span className={`mt-2 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold w-max ${reg.verified ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+                            {reg.verified ? <><ShieldCheck className="w-3 h-3"/> Verified</> : <><AlertTriangle className="w-3 h-3"/> Unverified</>}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-right text-slate-400 text-xs font-medium">
                         {new Date(reg.createdAt).toLocaleDateString("en-IN", {
