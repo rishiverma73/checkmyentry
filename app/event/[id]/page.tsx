@@ -220,19 +220,31 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
 
   const sendTicketEmail = async (tid: string, attendee: string, attendeeEmail: string, eventInfo: any) => {
     try {
-      const serviceID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-      const templateID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
-      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+      const serviceID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_9y37lip";
+      const templateID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_e9rgdnq";
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "cyNr94OU4b_fwtLPB";
 
-      if (!serviceID || !templateID || !publicKey) return;
+      if (!serviceID || !templateID || !publicKey) {
+        console.error("EmailJS Config Missing! Added fallbacks should prevent this.", { serviceID, templateID, publicKey });
+        return;
+      }
 
+      console.log("Sending email to:", attendeeEmail, "Ticket ID:", tid);
       const templateParams = {
-        to_email: attendeeEmail, to_name: attendee, event_name: eventInfo.eventName, ticket_id: tid,
+        to_email: attendeeEmail, 
+        email: attendeeEmail, 
+        user_email: attendeeEmail, 
+        to: attendeeEmail,
+        reply_to: attendeeEmail,
+        to_name: attendee, event_name: eventInfo.eventName, ticket_id: tid,
         event_date: eventInfo.date, event_time: eventInfo.time, event_location: eventInfo.location,
         qr_link: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${tid}`
       };
-      await emailjs.send(serviceID, templateID, templateParams, publicKey);
-    } catch (error) {}
+      const response = await emailjs.send(serviceID, templateID, templateParams, publicKey);
+      console.log("EmailJS Success:", response);
+    } catch (error) {
+      console.error("EmailJS Error details:", error);
+    }
   };
 
   const downloadTicketPDF = (tid: string, attendee: string, eventInfo: any) => {
