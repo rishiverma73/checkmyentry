@@ -48,10 +48,10 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
       {/* Background Orbs */}
-      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[128px] opacity-40 animate-pulse"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-[128px] opacity-40 animate-pulse" style={{ animationDelay: "2s" }}></div>
+      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-400/40 dark:bg-purple-600/40 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] animate-pulse"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-blue-400/40 dark:bg-blue-600/40 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] animate-pulse" style={{ animationDelay: "2s" }}></div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -59,17 +59,17 @@ export default function Signup() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="w-full max-w-md"
       >
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl relative z-10">
+        <div className="bg-white/70 dark:bg-white/10 backdrop-blur-xl border border-slate-200 dark:border-white/20 rounded-3xl p-8 shadow-xl dark:shadow-2xl relative z-10">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Create Account</h1>
-            <p className="text-slate-400 text-sm">Join to personalize your event experience</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Create Account</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Join to personalize your event experience</p>
           </div>
 
           {error && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl flex items-center gap-2 mb-6 text-sm"
+              className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-400 p-3 rounded-xl flex items-center gap-2 mb-6 text-sm"
             >
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>{error}</span>
@@ -78,7 +78,7 @@ export default function Signup() {
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-slate-300 text-sm font-medium ml-1">Full Name</label>
+              <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Full Name</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="h-5 w-5 text-slate-400" />
@@ -87,7 +87,7 @@ export default function Signup() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder:text-slate-500"
+                  className="w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm dark:shadow-none"
                   placeholder="John Doe"
                   required
                 />
@@ -95,7 +95,7 @@ export default function Signup() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-300 text-sm font-medium ml-1">Email</label>
+              <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Email</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-slate-400" />
@@ -104,7 +104,7 @@ export default function Signup() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder:text-slate-500"
+                  className="w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm dark:shadow-none"
                   placeholder="name@example.com"
                   required
                 />
@@ -112,7 +112,7 @@ export default function Signup() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-300 text-sm font-medium ml-1">Password</label>
+              <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-slate-400" />
@@ -121,7 +121,7 @@ export default function Signup() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder:text-slate-500"
+                  className="w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm dark:shadow-none"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -145,14 +145,14 @@ export default function Signup() {
             </button>
           </form>
 
-          <p className="mt-8 text-center text-sm text-slate-400">
+          <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
             Already have an account?{" "}
-            <Link href="/login" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors">
+            <Link href="/login" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors">
               Sign In
             </Link>
           </p>
           <div className="mt-4 text-center">
-            <Link href="/" className="text-xs text-slate-500 hover:text-slate-400 transition-colors">
+            <Link href="/" className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
               Back to Home
             </Link>
           </div>

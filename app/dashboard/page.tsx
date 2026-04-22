@@ -438,8 +438,8 @@ export default function Dashboard() {
         
         {/* Analytics Growth Chart */}
         {chartData.length > 0 && (
-          <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl mb-10 relative z-10">
-            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-slate-200 dark:border-white/10 shadow-lg dark:shadow-2xl mb-10 relative z-10 transition-colors duration-300">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
               Registration Growth
             </h2>
             <div className="h-[300px] w-full">
@@ -553,7 +553,7 @@ export default function Dashboard() {
                         <Copy className="w-4 h-4" /> Copy Link
                       </button>
                       <Link href={`/event/${event.id}`} target="_blank" className="flex-1">
-                        <button className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                        <button className="w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 py-2.5 rounded-xl text-sm font-semibold transition-colors">
                           <ExternalLink className="w-4 h-4" /> View Page
                         </button>
                       </Link>
@@ -738,7 +738,7 @@ export default function Dashboard() {
                   )}
 
                   <div className="mt-8 pt-4 border-t border-slate-100">
-                    <button onClick={createEvent} disabled={generating} className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed">
+                    <button onClick={createEvent} disabled={generating} className="w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 font-semibold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed">
                       {generating ? (
                         <><Loader2 className="w-5 h-5 animate-spin" /> Saving Configuration...</>
                       ) : (
