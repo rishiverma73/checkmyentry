@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -45,7 +46,7 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600 dark:text-neutral-300">
              <a href="#features" className="hover:text-slate-900 dark:hover:text-white transition-colors">Features</a>
              <a href="#how-it-works" className="hover:text-slate-900 dark:hover:text-white transition-colors">How it Works</a>
-             <a href="#pricing" className="hover:text-slate-900 dark:hover:text-white transition-colors">Pricing</a>
+             <Link href="/pricing" className="hover:text-slate-900 dark:hover:text-white transition-colors">Pricing</Link>
              <a href="#testimonials" className="hover:text-slate-900 dark:hover:text-white transition-colors">Reviews</a>
           </div>
 
@@ -347,60 +348,7 @@ export default function Home() {
          </div>
       </section>
 
-      {/* 9. PRICING */}
-      <section id="pricing" className="py-24 px-6 relative z-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-slate-900 dark:text-white">
-              Simple, transparent pricing.
-            </h2>
-            <p className="text-slate-600 dark:text-neutral-400 font-medium text-lg">Start for free. Upgrade when you need more power.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-             {/* Free */}
-             <div className="bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex flex-col">
-               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Starter</h3>
-               <p className="text-slate-500 dark:text-neutral-400 text-sm font-medium mb-6">Perfect for small meetups.</p>
-               <div className="mb-8"><span className="text-4xl font-extrabold text-slate-900 dark:text-white">$0</span><span className="text-slate-500 dark:text-neutral-500 font-medium">/mo</span></div>
-               <ul className="space-y-4 mb-8 flex-1">
-                 <li className="flex items-center gap-3 text-sm text-slate-700 dark:text-neutral-300 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> Up to 100 attendees</li>
-                 <li className="flex items-center gap-3 text-sm text-slate-700 dark:text-neutral-300 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> Basic registration forms</li>
-                 <li className="flex items-center gap-3 text-sm text-slate-700 dark:text-neutral-300 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> Standard QR Tickets</li>
-               </ul>
-               <button className="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-semibold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">Get Started</button>
-             </div>
-
-             {/* Pro */}
-             <div className="bg-slate-900 dark:bg-white/[0.05] border border-slate-800 dark:border-white/10 rounded-3xl p-8 flex flex-col relative transform md:-translate-y-4 shadow-2xl shadow-[#8B5CF6]/20">
-               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1 bg-gradient-to-r from-[#00E5FF] to-[#8B5CF6] text-white text-xs font-bold rounded-full">MOST POPULAR</div>
-               <h3 className="text-xl font-bold text-white mb-2">Pro Organizer</h3>
-               <p className="text-slate-400 text-sm font-medium mb-6">For professional events & fests.</p>
-               <div className="mb-8"><span className="text-4xl font-extrabold text-white">$29</span><span className="text-slate-500 font-medium">/mo</span></div>
-               <ul className="space-y-4 mb-8 flex-1">
-                 <li className="flex items-center gap-3 text-sm text-slate-200 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> Unlimited attendees</li>
-                 <li className="flex items-center gap-3 text-sm text-slate-200 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> Dynamic Form Builder</li>
-                 <li className="flex items-center gap-3 text-sm text-slate-200 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> Excel ID Verification</li>
-                 <li className="flex items-center gap-3 text-sm text-slate-200 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> Advanced Analytics</li>
-               </ul>
-               <button className="w-full py-3 rounded-xl bg-gradient-to-r from-[#00E5FF] to-[#8B5CF6] text-white font-bold hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all">Go Pro</button>
-             </div>
-
-             {/* Enterprise */}
-             <div className="bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex flex-col">
-               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Enterprise</h3>
-               <p className="text-slate-500 dark:text-neutral-400 text-sm font-medium mb-6">For massive scale operations.</p>
-               <div className="mb-8"><span className="text-4xl font-extrabold text-slate-900 dark:text-white">Custom</span></div>
-               <ul className="space-y-4 mb-8 flex-1">
-                 <li className="flex items-center gap-3 text-sm text-slate-700 dark:text-neutral-300 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> Dedicated Support</li>
-                 <li className="flex items-center gap-3 text-sm text-slate-700 dark:text-neutral-300 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> API Access</li>
-                 <li className="flex items-center gap-3 text-sm text-slate-700 dark:text-neutral-300 font-medium"><Check className="w-4 h-4 text-[#00E5FF]" /> Custom Domain</li>
-               </ul>
-               <button className="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-semibold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">Contact Sales</button>
-             </div>
-          </div>
-        </div>
-      </section>
+      {/* 9. PRICING HAS BEEN MOVED TO /pricing */}
 
       {/* 10. FINAL CTA */}
       <section className="py-24 px-6 relative overflow-hidden">
