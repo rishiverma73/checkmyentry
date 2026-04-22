@@ -4,9 +4,13 @@ import fs from "fs";
 import csv from "csv-parser";
 
 const firebaseConfig = {
-   apiKey: "AIzaSyCx81vO8jIeTDUnFJIfDDVnn9y93IqquK8",
+  apiKey: "AIzaSyCx81vO8jIeTDUnFJIfDDVnn9y93IqquK8",
   authDomain: "checkmyentry-9044f.firebaseapp.com",
   projectId: "checkmyentry-9044f",
+  storageBucket: "checkmyentry-9044f.firebasestorage.app",
+  messagingSenderId: "576704423244",
+  appId: "1:576704423244:web:3aad395cb1db558d5cdbe9",
+  measurementId: "G-B8NMN2LS9P"
 };
 
 const app = initializeApp(firebaseConfig);

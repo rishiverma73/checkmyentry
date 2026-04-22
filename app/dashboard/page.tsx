@@ -34,6 +34,7 @@ import {
   UploadCloud,
   Trash
 } from "lucide-react";
+import { ThemeToggle } from "../../components/ThemeToggle";
 
 export default function Dashboard() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -331,31 +332,35 @@ export default function Dashboard() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-slate-50 dark:bg-[#05050A] flex items-center justify-center transition-colors duration-300">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#05050A] text-slate-900 dark:text-white font-sans selection:bg-blue-200 dark:selection:bg-purple-500/30 overflow-x-hidden relative transition-colors duration-300">
+      <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-400/20 dark:bg-blue-600/10 blur-[150px] rounded-full pointer-events-none transition-colors duration-500" />
+      <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-400/20 dark:bg-purple-600/10 blur-[150px] rounded-full pointer-events-none transition-colors duration-500" />
+      
+      <nav className="bg-white/70 dark:bg-[#05050A]/60 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 sticky top-0 z-40 transition-colors duration-300">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer">
-              <QrCode className="w-6 h-6 text-blue-600" />
-              <span className="font-bold text-xl tracking-tight text-slate-900">CheckMyEntry</span>
+              <QrCode className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">CheckMyEntry</span>
             </div>
           </Link>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <button 
               onClick={() => setIsScannerOpen(true)}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5 px-3 py-1.5 hover:bg-slate-50 rounded-lg"
+              className="text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-all flex items-center gap-1.5 px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg"
             >
               <ScanLine className="w-4 h-4" />
               Scanner
             </button>
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full text-sm font-medium text-slate-700">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-white/5 rounded-full text-sm font-medium text-slate-700 dark:text-neutral-300">
               <UserIcon className="w-4 h-4" />
               {user.displayName || user.email}
             </div>
@@ -371,15 +376,15 @@ export default function Dashboard() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-6 py-10">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 relative z-10">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-1">Organizer Dashboard</h1>
-            <p className="text-slate-500">Manage your events and track registrations seamlessly.</p>
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-1">Organizer Dashboard</h1>
+            <p className="text-slate-500 dark:text-neutral-400 font-medium">Manage your events and track registrations seamlessly.</p>
           </div>
           <div className="flex items-center gap-3">
              <button 
                onClick={() => setShowForm(true)}
-               className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl font-medium shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]"
              >
                <Plus className="w-5 h-5" />
                Create Event
@@ -411,30 +416,30 @@ export default function Dashboard() {
         </div>
 
         {/* Global Event Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
-            <p className="text-slate-500 text-sm font-medium mb-1">Total Active Events</p>
-            <p className="text-3xl font-bold text-slate-900">{events.length}</p>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10 relative z-10">
+          <div className="bg-white dark:bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-xl flex flex-col justify-center">
+            <p className="text-slate-500 dark:text-neutral-400 text-sm font-medium mb-1">Total Active Events</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-white">{events.length}</p>
           </div>
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center">
-            <p className="text-slate-500 text-sm font-medium mb-1">Lifetime Registrations</p>
-            <p className="text-3xl font-bold text-emerald-600">{totalRegs}</p>
+          <div className="bg-white dark:bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-xl flex flex-col justify-center">
+            <p className="text-slate-500 dark:text-neutral-400 text-sm font-medium mb-1">Lifetime Registrations</p>
+            <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{totalRegs}</p>
           </div>
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center relative overflow-hidden">
-            <p className="text-slate-500 text-sm font-medium mb-1">Total Checked-In</p>
-            <p className="text-3xl font-bold text-purple-600">{checkedInCount}</p>
+          <div className="bg-white dark:bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-xl flex flex-col justify-center relative overflow-hidden">
+            <p className="text-slate-500 dark:text-neutral-400 text-sm font-medium mb-1">Total Checked-In</p>
+            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{checkedInCount}</p>
           </div>
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5"><UserIcon className="w-24 h-24 text-blue-600" /></div>
-            <p className="text-slate-500 text-sm font-medium mb-1">Today's Registrations</p>
-            <p className="text-3xl font-bold text-blue-600">{todayRegs}</p>
+          <div className="bg-white dark:bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-xl flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5"><UserIcon className="w-24 h-24 text-blue-600 dark:text-blue-400" /></div>
+            <p className="text-slate-500 dark:text-neutral-400 text-sm font-medium mb-1">Today's Registrations</p>
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{todayRegs}</p>
           </div>
         </div>
         
         {/* Analytics Growth Chart */}
         {chartData.length > 0 && (
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm mb-10">
-            <h2 className="text-xl font-semibold text-slate-800 mb-6 flex items-center gap-2">
+          <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl mb-10 relative z-10">
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
               Registration Growth
             </h2>
             <div className="h-[300px] w-full">

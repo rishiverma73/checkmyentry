@@ -8,13 +8,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CheckMyEntry | Smart QR Event Entry",
+  title: "ScanMyEntry | Smart QR Event Entry",
   description: "Generate QR-based tickets, prevent fake entries, and manage your event seamlessly.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "CheckMyEntry",
+    title: "ScanMyEntry",
   },
   formatDetection: {
     telephone: false,
@@ -30,6 +30,8 @@ export const viewport = {
 
 import { AuthProvider } from "../lib/AuthContext";
 
+import { ThemeProvider } from "../components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -41,8 +43,10 @@ export default function RootLayout({
       className={`${inter.variable} font-sans h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <AuthProvider>{children}</AuthProvider>
+      <body className="min-h-full flex flex-col bg-slate-50 dark:bg-[#05050A] text-slate-900 dark:text-white transition-colors duration-300">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

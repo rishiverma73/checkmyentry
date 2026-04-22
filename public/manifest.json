@@ -1,6 +1,6 @@
 {
-  "name": "CheckMyEntry Admin",
-  "short_name": "CheckEntry",
+  "name": "ScanMyEntry Admin",
+  "short_name": "ScanEntry",
   "description": "Smart QR-based event registration and entry management for organizers.",
   "start_url": "/dashboard",
   "display": "standalone",
@@ -28,7 +28,7 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "CheckMyEntry Dashboard"
+      "label": "ScanMyEntry Dashboard"
     }
   ]
 }
