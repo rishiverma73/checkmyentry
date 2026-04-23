@@ -2,13 +2,11 @@
 import Link from "next/link";
 import { QrCode, Users, Zap, ShieldCheck, Heart } from "lucide-react";
 import { ThemeToggle } from "../../components/ThemeToggle";
-
 export default function AboutUs() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] text-slate-900 dark:text-white font-sans">
       <div className="fixed top-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#00E5FF]/10 blur-[150px] rounded-full pointer-events-none" />
       <div className="fixed bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#8B5CF6]/10 blur-[150px] rounded-full pointer-events-none" />
-
       {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-white/70 dark:bg-[#0B0F1A]/70 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 py-4 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -21,7 +19,6 @@ export default function AboutUs() {
           <ThemeToggle />
         </div>
       </nav>
-
       <main className="pt-32 pb-24 px-6 relative z-10 max-w-4xl mx-auto">
         {/* Hero */}
         <div className="text-center mb-16">
@@ -36,7 +33,6 @@ export default function AboutUs() {
             Built for event organizers across India — a platform that makes check-in fast, seamless, and professional.
           </p>
         </div>
-
         {/* Mission */}
         <div className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-3xl p-8 md:p-12 mb-10 shadow-sm">
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
@@ -52,7 +48,6 @@ export default function AboutUs() {
             whether it is a college festival, a corporate seminar, or a wedding reception.
           </p>
         </div>
-
         {/* Values */}
         <div className="grid md:grid-cols-3 gap-6 mb-10">
           {[
@@ -67,7 +62,6 @@ export default function AboutUs() {
             </div>
           ))}
         </div>
-
         {/* Team */}
         <div className="bg-gradient-to-br from-[#00E5FF]/10 to-[#8B5CF6]/10 border border-[#00E5FF]/20 rounded-3xl p-8 md:p-12 mb-10">
           <h2 className="text-2xl font-bold mb-6">About the Team</h2>
@@ -83,7 +77,6 @@ export default function AboutUs() {
             </div>
           </div>
         </div>
-
         <div className="text-center">
           <Link href="/">
             <button className="h-12 px-8 rounded-full bg-gradient-to-r from-[#00E5FF] to-[#8B5CF6] text-white font-bold shadow-lg hover:scale-105 transition-transform">

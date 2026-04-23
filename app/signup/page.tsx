@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "../../lib/firebase";
@@ -8,7 +7,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, Calendar, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
-
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,18 +15,14 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
     if (!dob) {
       setError("Please enter your Date of Birth.");
       return;
     }
-
     setLoading(true);
-
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
@@ -36,7 +30,6 @@ export default function Signup() {
       await updateProfile(userCredential.user, {
         displayName: name,
       });
-
       // Initialize user data in Firestore (including DOB for password recovery)
       await setDoc(doc(db, "user_profiles", userCredential.user.uid), {
         uid: userCredential.user.uid,
@@ -45,7 +38,6 @@ export default function Signup() {
         dob: dob,
         createdAt: new Date().toISOString(),
       });
-
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
@@ -54,13 +46,11 @@ export default function Signup() {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
       {/* Background Orbs */}
       <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-400/40 dark:bg-purple-600/40 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] animate-pulse"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-blue-400/40 dark:bg-blue-600/40 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] animate-pulse" style={{ animationDelay: "2s" }}></div>
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -72,7 +62,6 @@ export default function Signup() {
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Create Account</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm">Join to personalize your event experience</p>
           </div>
-
           {error && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -83,7 +72,6 @@ export default function Signup() {
               <span>{error}</span>
             </motion.div>
           )}
-
           <form onSubmit={handleSignup} className="space-y-4">
             {/* Full Name */}
             <div className="space-y-1">
@@ -102,7 +90,6 @@ export default function Signup() {
                 />
               </div>
             </div>
-
             {/* Email */}
             <div className="space-y-1">
               <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Email</label>
@@ -120,7 +107,6 @@ export default function Signup() {
                 />
               </div>
             </div>
-
             {/* Date of Birth */}
             <div className="space-y-1">
               <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">
@@ -140,7 +126,6 @@ export default function Signup() {
                 />
               </div>
             </div>
-
             {/* Password */}
             <div className="space-y-1">
               <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Password</label>
@@ -159,7 +144,6 @@ export default function Signup() {
                 />
               </div>
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -175,7 +159,6 @@ export default function Signup() {
               )}
             </button>
           </form>
-
           <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
             Already have an account?{" "}
             <Link href="/login" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors">

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../lib/firebase";
@@ -7,19 +6,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Mail, Lock, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/dashboard");
@@ -30,13 +26,11 @@ export default function Login() {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
       {/* Background Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-400/40 dark:bg-blue-600/40 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] animate-pulse"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-400/40 dark:bg-purple-600/40 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] animate-pulse" style={{ animationDelay: "2s" }}></div>
-
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -48,7 +42,6 @@ export default function Login() {
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Welcome Back</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm">Sign in to manage your event passes</p>
           </div>
-
           {error && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -59,7 +52,6 @@ export default function Login() {
               <span>{error}</span>
             </motion.div>
           )}
-
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-1">
               <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Email</label>
@@ -77,7 +69,6 @@ export default function Login() {
                 />
               </div>
             </div>
-
             <div className="space-y-1">
               <div className="flex items-center justify-between ml-1">
                 <label className="text-slate-600 dark:text-slate-300 text-sm font-medium">Password</label>
@@ -99,7 +90,6 @@ export default function Login() {
                 />
               </div>
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -115,7 +105,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
           <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
             Don't have an account?{" "}
             <Link href="/signup" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors">
