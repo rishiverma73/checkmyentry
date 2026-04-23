@@ -39,7 +39,11 @@ import {
   BadgeCheck,
   KeyRound,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  Star,
+  Pencil,
+  MessageSquarePlus,
+  Save
 } from "lucide-react";
 import { ThemeToggle } from "../../components/ThemeToggle";
 
@@ -85,12 +89,25 @@ export default function Dashboard() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [profileTab, setProfileTab] = useState<'info' | 'password'>('info');
+  const [profileTab, setProfileTab] = useState<'info' | 'edit' | 'password'>('info');
   const [currentPwd, setCurrentPwd] = useState('');
   const [newPwd, setNewPwd] = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
   const [pwdMsg, setPwdMsg] = useState<{type: 'success'|'error', text: string} | null>(null);
   const [changingPwd, setChangingPwd] = useState(false);
+
+  // Edit profile state
+  const [editName, setEditName] = useState('');
+  const [editDob, setEditDob] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [editMsg, setEditMsg] = useState<{type: 'success'|'error', text: string} | null>(null);
+  // Review state
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewRole, setReviewRole] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewMsg, setReviewMsg] = useState<{type: 'success'|'error', text: string} | null>(null);
 
   useEffect(() => {
     let html5QrCode: Html5Qrcode | null = null;
@@ -185,6 +202,7 @@ export default function Dashboard() {
     setIsProfileOpen(true);
     setProfileTab('info');
     setPwdMsg(null);
+    setEditMsg(null);
     setCurrentPwd('');
     setNewPwd('');
     setConfirmPwd('');
@@ -192,9 +210,61 @@ export default function Dashboard() {
       setProfileLoading(true);
       try {
         const docSnap = await getDoc(doc(db, 'user_profiles', user.uid));
-        if (docSnap.exists()) setProfileData(docSnap.data());
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setProfileData(data);
+          setEditName(data.name || user.displayName || '');
+          setEditDob(data.dob || '');
+        }
       } catch (e) { console.error(e); }
       finally { setProfileLoading(false); }
+    } else if (profileData) {
+      setEditName(profileData.name || user?.displayName || '');
+      setEditDob(profileData.dob || '');
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditMsg(null);
+    if (!editName.trim()) { setEditMsg({ type: 'error', text: 'Name cannot be empty.' }); return; }
+    setSavingProfile(true);
+    try {
+      await updateDoc(doc(db, 'user_profiles', user!.uid), { name: editName.trim(), dob: editDob });
+      setProfileData((prev: any) => ({ ...prev, name: editName.trim(), dob: editDob }));
+      setEditMsg({ type: 'success', text: 'Profile updated successfully!' });
+    } catch (err: any) {
+      setEditMsg({ type: 'error', text: err.message || 'Failed to save profile.' });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const submitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setReviewMsg(null);
+    if (!reviewText.trim()) { setReviewMsg({ type: 'error', text: 'Please write a review.' }); return; }
+    setSubmittingReview(true);
+    try {
+      const reviewId = Math.random().toString(36).substring(2, 12);
+      await setDoc(doc(db, 'reviews', reviewId), {
+        name: user?.displayName || 'Anonymous',
+        email: user?.email || '',
+        role: reviewRole.trim() || 'Event Organizer',
+        text: reviewText.trim(),
+        rating: reviewRating,
+        avatar: (user?.displayName || user?.email || 'U')[0].toUpperCase(),
+        createdAt: new Date().toISOString(),
+        uid: user?.uid,
+      });
+      setReviewMsg({ type: 'success', text: 'Review submitted! It will appear on the homepage. Thank you 🙏' });
+      setReviewText('');
+      setReviewRole('');
+      setReviewRating(5);
+    } catch (err: any) {
+      setReviewMsg({ type: 'error', text: err.message || 'Failed to submit review.' });
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -465,7 +535,14 @@ export default function Dashboard() {
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-1">Organizer Dashboard</h1>
             <p className="text-slate-500 dark:text-neutral-400 font-medium">Manage your events and track registrations seamlessly.</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+             <button
+               onClick={() => { setIsReviewOpen(true); setReviewMsg(null); }}
+               className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white px-4 py-3 rounded-xl font-medium shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]"
+             >
+               <Star className="w-4 h-4" />
+               Rate Us
+             </button>
              <button 
                onClick={() => setShowForm(true)}
                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-medium shadow-[0_0_15px_rgba(37,99,235,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -607,7 +684,7 @@ export default function Dashboard() {
                     <div className="space-y-2 mt-4">
                       <div className="flex items-center text-sm text-slate-500 gap-2">
                         <Clock className="w-4 h-4 text-slate-400" />
-                        {event.date} • {event.time}
+                        {event.date} ΓÇó {event.time}
                       </div>
                       <div className="flex items-center text-sm text-slate-500 gap-2">
                         <MapPin className="w-4 h-4 text-slate-400" />
@@ -929,24 +1006,34 @@ export default function Dashboard() {
                 {/* Tabs */}
                 <div className="flex border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 -mt-6 relative z-10 mx-4 rounded-xl shadow-sm overflow-hidden">
                   <button
-                    onClick={() => { setProfileTab('info'); setPwdMsg(null); }}
-                    className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${
+                    onClick={() => { setProfileTab('info'); setPwdMsg(null); setEditMsg(null); }}
+                    className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
                       profileTab === 'info'
                         ? 'bg-white dark:bg-white/10 text-blue-600 dark:text-blue-400 shadow-sm'
                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                     }`}
                   >
-                    <UserIcon className="w-4 h-4" /> My Info
+                    <UserIcon className="w-3.5 h-3.5" /> Info
                   </button>
                   <button
-                    onClick={() => { setProfileTab('password'); setPwdMsg(null); }}
-                    className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${
+                    onClick={() => { setProfileTab('edit'); setPwdMsg(null); setEditMsg(null); }}
+                    className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
+                      profileTab === 'edit'
+                        ? 'bg-white dark:bg-white/10 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <Pencil className="w-3.5 h-3.5" /> Edit
+                  </button>
+                  <button
+                    onClick={() => { setProfileTab('password'); setPwdMsg(null); setEditMsg(null); }}
+                    className={`flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
                       profileTab === 'password'
                         ? 'bg-white dark:bg-white/10 text-purple-600 dark:text-purple-400 shadow-sm'
                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                     }`}
                   >
-                    <KeyRound className="w-4 h-4" /> Change Password
+                    <KeyRound className="w-3.5 h-3.5" /> Password
                   </button>
                 </div>
 
@@ -961,10 +1048,10 @@ export default function Dashboard() {
                       <div className="space-y-4">
                         {/* Info Row Helper */}
                         {[
-                          { icon: <UserIcon className="w-5 h-5 text-blue-500" />, label: 'Full Name', value: profileData?.name || user.displayName || '—' },
-                          { icon: <Mail className="w-5 h-5 text-purple-500" />, label: 'Email Address', value: profileData?.email || user.email || '—' },
-                          { icon: <CalendarDays className="w-5 h-5 text-emerald-500" />, label: 'Date of Birth', value: profileData?.dob ? new Date(profileData.dob + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—  (Set DOB during signup)' },
-                          { icon: <ShieldCheck className="w-5 h-5 text-orange-500" />, label: 'Account Created', value: profileData?.createdAt ? new Date(profileData.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—' },
+                          { icon: <UserIcon className="w-5 h-5 text-blue-500" />, label: 'Full Name', value: profileData?.name || user.displayName || 'Not set' },
+                          { icon: <Mail className="w-5 h-5 text-purple-500" />, label: 'Email Address', value: profileData?.email || user.email || 'Not set' },
+                          { icon: <CalendarDays className="w-5 h-5 text-emerald-500" />, label: 'Date of Birth', value: profileData?.dob ? new Date(profileData.dob + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not set (use Edit tab to add)' },
+                          { icon: <ShieldCheck className="w-5 h-5 text-orange-500" />, label: 'Account Created', value: profileData?.createdAt ? new Date(profileData.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not available' },
                           { icon: <QrCode className="w-5 h-5 text-slate-500" />, label: 'Total Events', value: String(events.length) },
                         ].map(({ icon, label, value }) => (
                           <div key={label} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
@@ -979,6 +1066,37 @@ export default function Dashboard() {
                         ))}
                       </div>
                     )
+                  )}
+
+                  {profileTab === 'edit' && (
+                    <form onSubmit={handleSaveProfile} className="space-y-4">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Update your profile. DOB is required for password recovery.</p>
+                      {editMsg && (
+                        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+                          className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${editMsg.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30' : 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30'}`}
+                        >
+                          {editMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+                          {editMsg.text}
+                        </motion.div>
+                      )}
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">Full Name</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><UserIcon className="h-4 w-4 text-slate-400" /></div>
+                          <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Your full name" required className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">Date of Birth <span className="text-emerald-500 text-xs">(for password recovery)</span></label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><CalendarDays className="h-4 w-4 text-slate-400" /></div>
+                          <input type="date" value={editDob} onChange={(e) => setEditDob(e.target.value)} max={new Date().toISOString().split('T')[0]} className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm" />
+                        </div>
+                      </div>
+                      <button type="submit" disabled={savingProfile} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold py-3.5 rounded-xl shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed mt-2">
+                        {savingProfile ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-4 h-4" /> Save Changes</>}
+                      </button>
+                    </form>
                   )}
 
                   {profileTab === 'password' && (
@@ -1035,6 +1153,69 @@ export default function Dashboard() {
                     </form>
                   )}
                 </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+
+        {/* ====== Review Modal ====== */}
+        {isReviewOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50"
+              onClick={() => setIsReviewOpen(false)}
+            />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 20 }}
+                className="bg-white dark:bg-[#0f1729] rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden pointer-events-auto border border-slate-200 dark:border-white/10"
+              >
+                <div className="relative bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-white">
+                  <button onClick={() => setIsReviewOpen(false)} className="absolute top-4 right-4 p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center"><MessageSquarePlus className="w-6 h-6 text-white" /></div>
+                    <div>
+                      <h3 className="text-lg font-bold">Share Your Experience</h3>
+                      <p className="text-amber-100 text-sm">Aapka review homepage par dikhega 🙏</p>
+                    </div>
+                  </div>
+                </div>
+                <form onSubmit={submitReview} className="p-6 space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Rating</label>
+                    <div className="flex gap-2">
+                      {[1,2,3,4,5].map(star => (
+                        <button key={star} type="button" onClick={() => setReviewRating(star)} className="transition-transform hover:scale-125">
+                          <Star className={`w-8 h-8 ${star <= reviewRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-600'}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">Your Role / Title</label>
+                    <input type="text" value={reviewRole} onChange={(e) => setReviewRole(e.target.value)} placeholder="e.g. College Fest Organizer · Jaipur" className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-sm placeholder:text-slate-400" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">Your Review</label>
+                    <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} rows={4} placeholder="Platform kaisa laga? Kya feature sabse zyada pasand aaya?" required className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-sm resize-none placeholder:text-slate-400" />
+                  </div>
+                  {reviewMsg && (
+                    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+                      className={`flex items-start gap-2 p-3 rounded-xl text-sm font-medium ${
+                        reviewMsg.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30' : 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30'
+                      }`}
+                    >
+                      {reviewMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
+                      {reviewMsg.text}
+                    </motion.div>
+                  )}
+                  <button type="submit" disabled={submittingReview} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-semibold py-3.5 rounded-xl shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed">
+                    {submittingReview ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Star className="w-4 h-4 fill-white" /> Submit Review</>}
+                  </button>
+                </form>
               </motion.div>
             </div>
           </>

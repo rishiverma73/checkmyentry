@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -7,19 +7,42 @@ import {
   QrCode, Zap, ArrowRight, Scan, ShieldCheck, CheckCircle2,
   CalendarPlus, BarChart3, CreditCard, LayoutTemplate,
   Users, Check, Ticket, Settings2, Link as LinkIcon, Shield,
-  ChevronRight, Star
+  ChevronRight, Star, Quote
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { db } from "../lib/firebase";
+import { collection, getDocs, orderBy, query, limit } from "firebase/firestore";
+
+const STATIC_REVIEWS = [
+  { name: "Priya Sharma", role: "College Fest Coordinator · Jaipur", text: "Bhai ekdum mast platform hai! Hamare college fest mein 500+ students the, ek bhi queue nahi laga. QR scan ek second mein ho gaya. Full recommend! 🙌", rating: 5, avatar: "P" },
+  { name: "Rahul Verma", role: "Tech Meetup Organizer · Delhi", text: "Excel waitlist upload karke ID verify karna — ye feature toh kamaal ka hai. Manual check karne mein 2 ghante lagte the, ab 10 minute mein ho jaata hai.", rating: 5, avatar: "R" },
+  { name: "Anjali Mehta", role: "Wedding Planner · Mumbai", text: "Shaadi ke reception mein 300 guests ke liye use kiya. Koi bhi duplicate entry nahi aayi. Platform professional dikhta hai aur use karna bahut aasaan hai.", rating: 5, avatar: "A" },
+];
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [isAnnual, setIsAnnual] = useState(true);
+  const [liveReviews, setLiveReviews] = useState<any[]>([]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(6));
+        const snap = await getDocs(q);
+        const data = snap.docs.map(d => d.data());
+        if (data.length > 0) setLiveReviews(data);
+      } catch (e) { /* fallback to static */ }
+    };
+    fetchReviews();
+  }, []);
+
+  const displayReviews = liveReviews.length > 0 ? liveReviews : STATIC_REVIEWS;
 
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, -50]);
@@ -317,32 +340,48 @@ export default function Home() {
       </section>
 
       {/* 8. TESTIMONIALS */}
-      <section id="testimonials" className="py-24 px-6 bg-slate-100/50 dark:bg-white/[0.01]">
+      <section id="testimonials" className="py-24 px-6 bg-slate-100/50 dark:bg-white/[0.01] relative overflow-hidden">
+         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00E5FF]/30 to-transparent" />
          <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
+              <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-600 dark:text-amber-400 text-xs font-bold tracking-wide mb-5">
+                <span className="w-2 h-2 rounded-full bg-amber-400 mr-2 animate-pulse" />
+                Real Log, Real Baatein ⭐
+              </span>
               <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-slate-900 dark:text-white">
-                Don't just take our word for it.
+                Hamare users ki <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] to-[#8B5CF6]">sacchi raay</span>
               </h2>
+              <p className="text-slate-500 dark:text-neutral-400 font-medium max-w-xl mx-auto">
+                Platform use karke khud dekhein — aur apna experience share bhi karein dashboard se.
+              </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { name: "Sarah Jenkins", role: "Festival Organizer", text: "CheckMyEntry eliminated our long queues. The built-in scanner is lightning fast and the dynamic forms let us collect t-shirt sizes easily." },
-                { name: "David Chen", role: "Tech Meetup Lead", text: "The premium feel of the tickets and the registration page made our small meetup look like a massive tech conference." },
-                { name: "Priya Sharma", role: "College Fest Coord", text: "Uploading our Excel waitlist and matching IDs automatically saved us hours of manual verification. Absolutely brilliant platform!" }
-              ].map((t, i) => (
-                <div key={i} className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 p-8 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
-                   <div className="flex gap-1 mb-6">
-                     {[...Array(5)].map((_,j) => <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayReviews.map((t, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/5 p-8 rounded-3xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative group"
+                >
+                   <Quote className="absolute top-6 right-6 w-8 h-8 text-[#00E5FF]/10 group-hover:text-[#00E5FF]/20 transition-colors" />
+                   <div className="flex gap-1 mb-5">
+                     {[...Array(t.rating || 5)].map((_,j) => <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
                    </div>
-                   <p className="text-slate-700 dark:text-neutral-300 font-medium mb-6 leading-relaxed">"{t.text}"</p>
-                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-white/10 dark:to-white/5"></div>
+                   <p className="text-slate-700 dark:text-neutral-300 font-medium mb-6 leading-relaxed text-sm">
+                     &ldquo;{t.text}&rdquo;
+                   </p>
+                   <div className="flex items-center gap-3 border-t border-slate-100 dark:border-white/5 pt-5">
+                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00E5FF] to-[#8B5CF6] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                       {(t.avatar || (t.name || 'U')[0]).toUpperCase()}
+                     </div>
                      <div>
                        <p className="text-sm font-bold text-slate-900 dark:text-white">{t.name}</p>
                        <p className="text-xs text-slate-500 dark:text-neutral-500 font-medium">{t.role}</p>
                      </div>
                    </div>
-                </div>
+                </motion.div>
               ))}
             </div>
          </div>
@@ -365,8 +404,8 @@ export default function Home() {
 
           {/* E-Ticketing Commission Table */}
           <div className="max-w-4xl mx-auto mb-16">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-6 gap-4">
-              <div>
+            <div className="flex flex-col items-center md:flex-row md:justify-between md:items-end mb-6 gap-4">
+              <div className="text-center md:text-left">
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1 tracking-tight">E-Ticketing Commission</h3>
                 <p className="text-slate-500 dark:text-neutral-400 font-medium text-sm">See exactly how much you earn per ticket.</p>
               </div>
@@ -386,19 +425,19 @@ export default function Home() {
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                   <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
                     <td className="p-6 text-slate-600 dark:text-neutral-300 font-medium">Ticket Price</td>
-                    <td className="p-6 text-right font-medium text-slate-900 dark:text-white">{!isAnnual ? '₹100.00' : '$100.00'}</td>
+                    <td className="p-6 text-right font-medium text-slate-900 dark:text-white">{!isAnnual ? 'â‚¹100.00' : '$100.00'}</td>
                   </tr>
                   <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
                     <td className="p-6 text-slate-600 dark:text-neutral-300 font-medium">Razorpay Fee (approx)</td>
-                    <td className="p-6 text-right font-medium text-rose-500">-{!isAnnual ? '₹2.36' : '$2.36'}</td>
+                    <td className="p-6 text-right font-medium text-rose-500">-{!isAnnual ? 'â‚¹2.36' : '$2.36'}</td>
                   </tr>
                   <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
                     <td className="p-6 text-slate-600 dark:text-neutral-300 font-medium">System Charge (2%)</td>
-                    <td className="p-6 text-right font-medium text-rose-500">-{!isAnnual ? '₹2.00' : '$2.00'}</td>
+                    <td className="p-6 text-right font-medium text-rose-500">-{!isAnnual ? 'â‚¹2.00' : '$2.00'}</td>
                   </tr>
                   <tr className="bg-[#00E5FF]/5 border-t-2 border-[#00E5FF]/20">
                     <td className="p-6 text-slate-900 dark:text-white font-bold text-lg">Amount Received</td>
-                    <td className="p-6 text-right font-bold text-xl text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">{!isAnnual ? '₹95.64' : '$95.64'}</td>
+                    <td className="p-6 text-right font-bold text-xl text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">{!isAnnual ? 'â‚¹95.64' : '$95.64'}</td>
                   </tr>
                 </tbody>
               </table>
@@ -426,16 +465,16 @@ export default function Home() {
                       <td className="p-5 text-right font-bold text-emerald-600 dark:text-emerald-400 text-sm">Free</td>
                     </tr>
                     <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
-                      <td className="p-5 text-slate-600 dark:text-neutral-300 font-medium text-sm">101 – 500 Guests</td>
-                      <td className="p-5 text-right font-semibold text-slate-900 dark:text-white text-sm">₹4</td>
+                      <td className="p-5 text-slate-600 dark:text-neutral-300 font-medium text-sm">101 â€“ 500 Guests</td>
+                      <td className="p-5 text-right font-semibold text-slate-900 dark:text-white text-sm">â‚¹4</td>
                     </tr>
                     <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
-                      <td className="p-5 text-slate-600 dark:text-neutral-300 font-medium text-sm">501 – 1000 Guests</td>
-                      <td className="p-5 text-right font-semibold text-slate-900 dark:text-white text-sm">₹3</td>
+                      <td className="p-5 text-slate-600 dark:text-neutral-300 font-medium text-sm">501 â€“ 1000 Guests</td>
+                      <td className="p-5 text-right font-semibold text-slate-900 dark:text-white text-sm">â‚¹3</td>
                     </tr>
                     <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
                       <td className="p-5 text-slate-600 dark:text-neutral-300 font-medium text-sm">Above 1000 Guests</td>
-                      <td className="p-5 text-right font-semibold text-[#00E5FF] text-sm">₹2</td>
+                      <td className="p-5 text-right font-semibold text-[#00E5FF] text-sm">â‚¹2</td>
                     </tr>
                   </tbody>
                 </table>
@@ -459,7 +498,7 @@ export default function Home() {
                     <span className="font-semibold text-slate-700 dark:text-neutral-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">WhatsApp Charge</span>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-lg text-slate-900 dark:text-white">₹0.89</span>
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">â‚¹0.89</span>
                     <span className="text-xs text-slate-400 dark:text-neutral-500 ml-1">+ GST</span>
                   </div>
                 </div>
@@ -471,7 +510,7 @@ export default function Home() {
                     <span className="font-semibold text-slate-700 dark:text-neutral-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">SMS Charge</span>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-lg text-slate-900 dark:text-white">₹0.25</span>
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">â‚¹0.25</span>
                     <span className="text-xs text-slate-400 dark:text-neutral-500 ml-1">+ GST</span>
                   </div>
                 </div>
@@ -483,7 +522,7 @@ export default function Home() {
                     <span className="font-semibold text-slate-700 dark:text-neutral-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Email Charge</span>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-lg text-slate-900 dark:text-white">₹0.11</span>
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">â‚¹0.11</span>
                     <span className="text-xs text-slate-400 dark:text-neutral-500 ml-1">+ GST</span>
                   </div>
                 </div>
@@ -541,16 +580,16 @@ export default function Home() {
                </div>
                
                <div className="flex flex-wrap gap-8 text-sm font-medium text-slate-600 dark:text-neutral-400">
-                  <Link href="#" className="hover:text-[#00E5FF] transition-colors">About Us</Link>
-                  <Link href="#" className="hover:text-[#00E5FF] transition-colors">Privacy Policy</Link>
-                  <Link href="#" className="hover:text-[#00E5FF] transition-colors">Terms of Service</Link>
-                  <Link href="#" className="hover:text-[#00E5FF] transition-colors">Contact Support</Link>
+                  <Link href="/about" className="hover:text-[#00E5FF] transition-colors">About Us</Link>
+                  <Link href="/privacy-policy" className="hover:text-[#00E5FF] transition-colors">Privacy Policy</Link>
+                  <Link href="/terms" className="hover:text-[#00E5FF] transition-colors">Terms of Service</Link>
+                  <Link href="/pricing#contact" className="hover:text-[#00E5FF] transition-colors">Contact Support</Link>
                </div>
             </div>
             
             <div className="pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-500 dark:text-neutral-600">
-               <p>© {new Date().getFullYear()} CheckMyEntry Platform. All rights reserved.</p>
-               <p className="flex items-center gap-1">Designed with <span className="text-red-500">♥</span> for Event Organizers</p>
+               <p>Â© {new Date().getFullYear()} CheckMyEntry Platform. All rights reserved.</p>
+               <p className="flex items-center gap-1">Designed with <span className="text-red-500">â™¥</span> for Event Organizers</p>
             </div>
          </div>
       </footer>
