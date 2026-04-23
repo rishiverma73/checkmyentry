@@ -348,7 +348,167 @@ export default function Home() {
          </div>
       </section>
 
-      {/* 9. PRICING HAS BEEN MOVED TO /pricing */}
+      {/* 9. PRICING */}
+      <section id="pricing" className="py-24 px-6 relative z-10 bg-slate-50 dark:bg-transparent border-y border-slate-200 dark:border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-slate-900 dark:text-white">
+              Simple, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] to-[#8B5CF6]">transparent</span> pricing.
+            </h2>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#00E5FF]/10 to-[#8B5CF6]/10 border border-[#00E5FF]/20 dark:border-[#00E5FF]/30 mt-2">
+              <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse shrink-0"></span>
+              <p className="font-semibold text-base text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] to-[#8B5CF6]">
+                Pay only when you earn. Zero commission for free events.
+              </p>
+            </div>
+          </div>
+
+          {/* E-Ticketing Commission Table */}
+          <div className="max-w-4xl mx-auto mb-16">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-6 gap-4">
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1 tracking-tight">E-Ticketing Commission</h3>
+                <p className="text-slate-500 dark:text-neutral-400 font-medium text-sm">See exactly how much you earn per ticket.</p>
+              </div>
+              <div className="flex bg-slate-100 dark:bg-[#121826] p-1.5 rounded-xl border border-slate-200 dark:border-white/5">
+                <button onClick={() => setIsAnnual(false)} className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${!isAnnual ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow border border-slate-200 dark:border-white/10' : 'text-slate-500 hover:text-slate-700 dark:text-neutral-500'}`}>INR</button>
+                <button onClick={() => setIsAnnual(true)} className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${isAnnual ? 'bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow border border-slate-200 dark:border-white/10' : 'text-slate-500 hover:text-slate-700 dark:text-neutral-500'}`}>USD</button>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-[#121826]/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
+                    <th className="p-6 text-sm font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Details</th>
+                    <th className="p-6 text-sm font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                  <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
+                    <td className="p-6 text-slate-600 dark:text-neutral-300 font-medium">Ticket Price</td>
+                    <td className="p-6 text-right font-medium text-slate-900 dark:text-white">{!isAnnual ? '₹100.00' : '$100.00'}</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
+                    <td className="p-6 text-slate-600 dark:text-neutral-300 font-medium">Razorpay Fee (approx)</td>
+                    <td className="p-6 text-right font-medium text-rose-500">-{!isAnnual ? '₹2.36' : '$2.36'}</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
+                    <td className="p-6 text-slate-600 dark:text-neutral-300 font-medium">System Charge (2%)</td>
+                    <td className="p-6 text-right font-medium text-rose-500">-{!isAnnual ? '₹2.00' : '$2.00'}</td>
+                  </tr>
+                  <tr className="bg-[#00E5FF]/5 border-t-2 border-[#00E5FF]/20">
+                    <td className="p-6 text-slate-900 dark:text-white font-bold text-lg">Amount Received</td>
+                    <td className="p-6 text-right font-bold text-xl text-[#00E5FF] drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">{!isAnnual ? '₹95.64' : '$95.64'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* QR Code Charges + Other Charges */}
+          <div className="grid lg:grid-cols-2 gap-10 mb-16">
+            <div className="flex flex-col">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-3 tracking-tight">
+                <div className="p-2 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/20"><QrCode className="text-[#8B5CF6] w-5 h-5" /></div>
+                QR Code Charges
+              </h3>
+              <div className="bg-white dark:bg-[#121826]/50 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden flex-1 shadow-sm">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/10">
+                      <th className="p-5 text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">Guests Capacity</th>
+                      <th className="p-5 text-xs font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest text-right">Cost / Guest</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                    <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
+                      <td className="p-5 text-slate-600 dark:text-neutral-300 font-medium text-sm">Up to 100 Guests</td>
+                      <td className="p-5 text-right font-bold text-emerald-600 dark:text-emerald-400 text-sm">Free</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
+                      <td className="p-5 text-slate-600 dark:text-neutral-300 font-medium text-sm">101 – 500 Guests</td>
+                      <td className="p-5 text-right font-semibold text-slate-900 dark:text-white text-sm">₹4</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
+                      <td className="p-5 text-slate-600 dark:text-neutral-300 font-medium text-sm">501 – 1000 Guests</td>
+                      <td className="p-5 text-right font-semibold text-slate-900 dark:text-white text-sm">₹3</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">
+                      <td className="p-5 text-slate-600 dark:text-neutral-300 font-medium text-sm">Above 1000 Guests</td>
+                      <td className="p-5 text-right font-semibold text-[#00E5FF] text-sm">₹2</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div className="p-4 bg-slate-50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/10 text-xs text-slate-400 dark:text-neutral-500 font-medium text-center">
+                  * Billed per successful check-in via QR scanner.
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-3 tracking-tight">
+                <div className="p-2 rounded-lg bg-[#00E5FF]/10 border border-[#00E5FF]/20"><CreditCard className="text-[#00E5FF] w-5 h-5" /></div>
+                Other Charges
+              </h3>
+              <div className="grid gap-4 flex-1">
+                <div className="bg-white dark:bg-[#121826]/50 border border-slate-200 dark:border-white/10 rounded-2xl p-5 flex items-center justify-between hover:shadow-md dark:hover:bg-white/[0.04] hover:border-[#25D366]/30 transition-all group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-[#25D366]/10 flex items-center justify-center border border-[#25D366]/20 group-hover:scale-110 transition-transform">
+                      <Zap className="w-5 h-5 text-[#25D366]" />
+                    </div>
+                    <span className="font-semibold text-slate-700 dark:text-neutral-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">WhatsApp Charge</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">₹0.89</span>
+                    <span className="text-xs text-slate-400 dark:text-neutral-500 ml-1">+ GST</span>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-[#121826]/50 border border-slate-200 dark:border-white/10 rounded-2xl p-5 flex items-center justify-between hover:shadow-md dark:hover:bg-white/[0.04] hover:border-[#00E5FF]/30 transition-all group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-[#00E5FF]/10 flex items-center justify-center border border-[#00E5FF]/20 group-hover:scale-110 transition-transform">
+                      <ShieldCheck className="w-5 h-5 text-[#00E5FF]" />
+                    </div>
+                    <span className="font-semibold text-slate-700 dark:text-neutral-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">SMS Charge</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">₹0.25</span>
+                    <span className="text-xs text-slate-400 dark:text-neutral-500 ml-1">+ GST</span>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-[#121826]/50 border border-slate-200 dark:border-white/10 rounded-2xl p-5 flex items-center justify-between hover:shadow-md dark:hover:bg-white/[0.04] hover:border-orange-400/30 transition-all group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20 group-hover:scale-110 transition-transform">
+                      <ChevronRight className="w-5 h-5 text-orange-400" />
+                    </div>
+                    <span className="font-semibold text-slate-700 dark:text-neutral-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Email Charge</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-lg text-slate-900 dark:text-white">₹0.11</span>
+                    <span className="text-xs text-slate-400 dark:text-neutral-500 ml-1">+ GST</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 pt-10 border-t border-slate-200 dark:border-white/5">
+            <div className="flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-neutral-300">
+              <div className="w-8 h-8 rounded-full bg-[#00E5FF]/10 flex items-center justify-center border border-[#00E5FF]/20"><Check className="w-4 h-4 text-[#00E5FF]" /></div>
+              No hidden charges
+            </div>
+            <div className="flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-neutral-300">
+              <div className="w-8 h-8 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center border border-[#8B5CF6]/20"><Zap className="w-4 h-4 text-[#8B5CF6]" /></div>
+              Instant payouts
+            </div>
+            <div className="flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-neutral-300">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20"><ShieldCheck className="w-4 h-4 text-emerald-500" /></div>
+              Secure payments
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* 10. FINAL CTA */}
       <section className="py-24 px-6 relative overflow-hidden">
