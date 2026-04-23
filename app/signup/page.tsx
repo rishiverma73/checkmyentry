@@ -7,11 +7,12 @@ import { setDoc, doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Calendar, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [dob, setDob] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,12 @@ export default function Signup() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!dob) {
+      setError("Please enter your Date of Birth.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -30,11 +37,12 @@ export default function Signup() {
         displayName: name,
       });
 
-      // Initialize user data in Firestore
+      // Initialize user data in Firestore (including DOB for password recovery)
       await setDoc(doc(db, "user_profiles", userCredential.user.uid), {
         uid: userCredential.user.uid,
         name: name,
         email: email,
+        dob: dob,
         createdAt: new Date().toISOString(),
       });
 
@@ -77,6 +85,7 @@ export default function Signup() {
           )}
 
           <form onSubmit={handleSignup} className="space-y-4">
+            {/* Full Name */}
             <div className="space-y-1">
               <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Full Name</label>
               <div className="relative">
@@ -88,12 +97,13 @@ export default function Signup() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm dark:shadow-none"
-                  placeholder="John Doe"
+                  placeholder="Name"
                   required
                 />
               </div>
             </div>
 
+            {/* Email */}
             <div className="space-y-1">
               <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Email</label>
               <div className="relative">
@@ -111,6 +121,27 @@ export default function Signup() {
               </div>
             </div>
 
+            {/* Date of Birth */}
+            <div className="space-y-1">
+              <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">
+                Date of Birth <span className="text-purple-500 text-xs">(Used for password recovery)</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Calendar className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  max={new Date().toISOString().split("T")[0]}
+                  className="w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all shadow-sm dark:shadow-none"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Password */}
             <div className="space-y-1">
               <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Password</label>
               <div className="relative">

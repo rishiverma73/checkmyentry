@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../lib/AuthContext";
 import { useRouter } from "next/navigation";
-import { db, storage } from "../../lib/firebase";
-import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy, updateDoc } from "firebase/firestore";
+import { db, storage, auth } from "../../lib/firebase";
+import { collection, query, where, getDocs, doc, setDoc, deleteDoc, getDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import Link from "next/link";
 import { Html5Qrcode } from "html5-qrcode";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,7 +33,13 @@ import {
   ListPlus,
   FileSpreadsheet,
   UploadCloud,
-  Trash
+  Trash,
+  Lock,
+  Mail,
+  BadgeCheck,
+  KeyRound,
+  ShieldCheck,
+  AlertCircle
 } from "lucide-react";
 import { ThemeToggle } from "../../components/ThemeToggle";
 
@@ -73,6 +80,17 @@ export default function Dashboard() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [scanResult, setScanResult] = useState<{type: 'success'|'error'|'warning', text: string} | null>(null);
   const [isOnline, setIsOnline] = useState(true);
+
+  // Profile & Change Password State
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileTab, setProfileTab] = useState<'info' | 'password'>('info');
+  const [currentPwd, setCurrentPwd] = useState('');
+  const [newPwd, setNewPwd] = useState('');
+  const [confirmPwd, setConfirmPwd] = useState('');
+  const [pwdMsg, setPwdMsg] = useState<{type: 'success'|'error', text: string} | null>(null);
+  const [changingPwd, setChangingPwd] = useState(false);
 
   useEffect(() => {
     let html5QrCode: Html5Qrcode | null = null;
@@ -162,6 +180,57 @@ export default function Dashboard() {
       fetchEvents(user.uid);
     }
   }, [user]);
+
+  const openProfile = async () => {
+    setIsProfileOpen(true);
+    setProfileTab('info');
+    setPwdMsg(null);
+    setCurrentPwd('');
+    setNewPwd('');
+    setConfirmPwd('');
+    if (!profileData && user?.uid) {
+      setProfileLoading(true);
+      try {
+        const docSnap = await getDoc(doc(db, 'user_profiles', user.uid));
+        if (docSnap.exists()) setProfileData(docSnap.data());
+      } catch (e) { console.error(e); }
+      finally { setProfileLoading(false); }
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwdMsg(null);
+    if (newPwd !== confirmPwd) {
+      setPwdMsg({ type: 'error', text: 'New passwords do not match.' });
+      return;
+    }
+    if (newPwd.length < 6) {
+      setPwdMsg({ type: 'error', text: 'Password must be at least 6 characters.' });
+      return;
+    }
+    setChangingPwd(true);
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser || !currentUser.email) throw new Error('Not authenticated');
+      const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
+      await reauthenticateWithCredential(currentUser, credential);
+      await updatePassword(currentUser, newPwd);
+      setPwdMsg({ type: 'success', text: 'Password changed successfully!' });
+      setCurrentPwd('');
+      setNewPwd('');
+      setConfirmPwd('');
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        setPwdMsg({ type: 'error', text: 'Current password is incorrect.' });
+      } else {
+        setPwdMsg({ type: 'error', text: err.message || 'Failed to change password.' });
+      }
+    } finally {
+      setChangingPwd(false);
+    }
+  };
 
   const fetchEvents = async (uid: string) => {
     setLoadingEvents(true);
@@ -360,13 +429,28 @@ export default function Dashboard() {
               <ScanLine className="w-4 h-4" />
               Scanner
             </button>
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-white/5 rounded-full text-sm font-medium text-slate-700 dark:text-neutral-300">
-              <UserIcon className="w-4 h-4" />
+            {/* Profile Button */}
+            <button
+              onClick={openProfile}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-full text-sm font-medium text-slate-700 dark:text-neutral-300 transition-colors"
+              title="My Profile"
+            >
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                <span className="text-white text-[10px] font-bold">{(user.displayName || user.email || 'U')[0].toUpperCase()}</span>
+              </div>
               {user.displayName || user.email}
-            </div>
+            </button>
+            {/* Mobile profile icon */}
+            <button
+              onClick={openProfile}
+              className="sm:hidden p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-white/5 rounded-full transition-colors"
+              title="My Profile"
+            >
+              <UserIcon className="w-5 h-5" />
+            </button>
             <button 
               onClick={logout}
-              className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+              className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-colors"
               title="Logout"
             >
               <LogOut className="w-5 h-5" />
@@ -795,6 +879,161 @@ export default function Dashboard() {
                   }`}>
                     {scanResult ? scanResult.text : "Awaiting Scan..."}
                   </div>
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
+
+        {/* ====== Profile Modal ====== */}
+        {isProfileOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50"
+              onClick={() => setIsProfileOpen(false)}
+            />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: 20 }}
+                className="bg-white dark:bg-[#0f1729] rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden pointer-events-auto border border-slate-200 dark:border-white/10 flex flex-col"
+              >
+                {/* Profile Header */}
+                <div className="relative bg-gradient-to-br from-blue-600 to-purple-700 p-6 pb-14 text-white shrink-0">
+                  <button
+                    onClick={() => setIsProfileOpen(false)}
+                    className="absolute top-4 right-4 p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-xl">
+                      <span className="text-2xl font-bold text-white">
+                        {(user.displayName || user.email || 'U')[0].toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold">{user.displayName || 'Organizer'}</h3>
+                      <p className="text-blue-100 text-sm">{user.email}</p>
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full mt-1">
+                        <BadgeCheck className="w-3 h-3" /> Verified Account
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 -mt-6 relative z-10 mx-4 rounded-xl shadow-sm overflow-hidden">
+                  <button
+                    onClick={() => { setProfileTab('info'); setPwdMsg(null); }}
+                    className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${
+                      profileTab === 'info'
+                        ? 'bg-white dark:bg-white/10 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <UserIcon className="w-4 h-4" /> My Info
+                  </button>
+                  <button
+                    onClick={() => { setProfileTab('password'); setPwdMsg(null); }}
+                    className={`flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors ${
+                      profileTab === 'password'
+                        ? 'bg-white dark:bg-white/10 text-purple-600 dark:text-purple-400 shadow-sm'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <KeyRound className="w-4 h-4" /> Change Password
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                <div className="p-6 overflow-y-auto">
+                  {profileTab === 'info' && (
+                    profileLoading ? (
+                      <div className="flex justify-center py-10">
+                        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {/* Info Row Helper */}
+                        {[
+                          { icon: <UserIcon className="w-5 h-5 text-blue-500" />, label: 'Full Name', value: profileData?.name || user.displayName || '—' },
+                          { icon: <Mail className="w-5 h-5 text-purple-500" />, label: 'Email Address', value: profileData?.email || user.email || '—' },
+                          { icon: <CalendarDays className="w-5 h-5 text-emerald-500" />, label: 'Date of Birth', value: profileData?.dob ? new Date(profileData.dob + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—  (Set DOB during signup)' },
+                          { icon: <ShieldCheck className="w-5 h-5 text-orange-500" />, label: 'Account Created', value: profileData?.createdAt ? new Date(profileData.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—' },
+                          { icon: <QrCode className="w-5 h-5 text-slate-500" />, label: 'Total Events', value: String(events.length) },
+                        ].map(({ icon, label, value }) => (
+                          <div key={label} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                            <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/10 flex items-center justify-center shadow-sm shrink-0">
+                              {icon}
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mb-0.5">{label}</p>
+                              <p className="text-slate-800 dark:text-white font-semibold text-sm">{value}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
+
+                  {profileTab === 'password' && (
+                    <form onSubmit={handleChangePassword} className="space-y-4">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+                        Enter your current password to verify your identity, then set a new one.
+                      </p>
+
+                      {pwdMsg && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${
+                            pwdMsg.type === 'success'
+                              ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30'
+                              : 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30'
+                          }`}
+                        >
+                          {pwdMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+                          {pwdMsg.text}
+                        </motion.div>
+                      )}
+
+                      {[
+                        { label: 'Current Password', value: currentPwd, setter: setCurrentPwd, placeholder: 'Your current password' },
+                        { label: 'New Password', value: newPwd, setter: setNewPwd, placeholder: 'At least 6 characters' },
+                        { label: 'Confirm New Password', value: confirmPwd, setter: setConfirmPwd, placeholder: 'Repeat new password' },
+                      ].map(({ label, value, setter, placeholder }) => (
+                        <div key={label} className="space-y-1">
+                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">{label}</label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <Lock className="h-4 w-4 text-slate-400" />
+                            </div>
+                            <input
+                              type="password"
+                              value={value}
+                              onChange={(e) => setter(e.target.value)}
+                              placeholder={placeholder}
+                              required
+                              className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm placeholder:text-slate-400"
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      <button
+                        type="submit"
+                        disabled={changingPwd}
+                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold py-3.5 rounded-xl shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                      >
+                        {changingPwd ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ShieldCheck className="w-4 h-4" /> Update Password</>}
+                      </button>
+                    </form>
+                  )}
                 </div>
               </motion.div>
             </div>

@@ -79,7 +79,12 @@ export default function Login() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Password</label>
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-slate-600 dark:text-slate-300 text-sm font-medium">Password</label>
+                <Link href="/forgot-password" className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium transition-colors">
+                  Forgot Password?
+                </Link>
+              </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-slate-400" />
