@@ -18,7 +18,7 @@ export default function TermsOfService() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00E5FF] to-[#8B5CF6] flex items-center justify-center shadow-lg">
               <QrCode className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl tracking-tight">CheckMyEntry</span>
+            <span className="font-bold text-xl tracking-tight">ScanMyEntry</span>
           </Link>
           <ThemeToggle />
         </div>
@@ -31,7 +31,7 @@ export default function TermsOfService() {
         <div className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-3xl p-8 md:p-12 shadow-sm">
           <Section title="1. Use of the Platform">
             <p>
-              CheckMyEntry is a SaaS platform that provides event organizers with QR-based entry management capabilities.
+              ScanMyEntry is a SaaS platform that provides event organizers with QR-based entry management capabilities.
               By using the platform, you agree to abide by these terms.
             </p>
             <p>
@@ -41,21 +41,21 @@ export default function TermsOfService() {
           <Section title="2. Account Responsibility">
             <p>
               You are solely responsible for maintaining the security of your account. Do not share your password with anyone.
-              If you notice any suspicious activity on your account, please report it immediately to <span className="text-[#00E5FF]">support@checkmyentry.com</span>.
+              If you notice any suspicious activity on your account, please report it immediately to <span className="text-[#00E5FF]">support@scanmyentry.com</span>.
             </p>
           </Section>
           <Section title="3. Event Content">
             <p>
               You are fully responsible for the content of events you create on the platform.
               Creating illegal, misleading, or harmful events is strictly prohibited.
-              CheckMyEntry reserves the right to remove any event without prior notice.
+              ScanMyEntry reserves the right to remove any event without prior notice.
             </p>
           </Section>
           <Section title="4. Payments and Commission">
             <p>
               Payment gateway fees and platform commission apply to paid events.
               These charges are clearly displayed before checkout.
-              Refund policies are determined by the event organizer — CheckMyEntry is not directly responsible for issuing refunds to attendees.
+              Refund policies are determined by the event organizer — ScanMyEntry is not directly responsible for issuing refunds to attendees.
             </p>
           </Section>
           <Section title="5. Data and Privacy">
@@ -72,7 +72,7 @@ export default function TermsOfService() {
           </Section>
           <Section title="7. Changes to Terms">
             <p>
-              CheckMyEntry may update these terms at any time. Users will be notified of material changes via email or an in-platform notification.
+              ScanMyEntry may update these terms at any time. Users will be notified of material changes via email or an in-platform notification.
             </p>
           </Section>
           <Section title="8. Dispute Resolution">

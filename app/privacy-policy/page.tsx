@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00E5FF] to-[#8B5CF6] flex items-center justify-center shadow-lg">
               <QrCode className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl tracking-tight">CheckMyEntry</span>
+            <span className="font-bold text-xl tracking-tight">ScanMyEntry</span>
           </Link>
           <ThemeToggle />
         </div>
@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
         </div>
         <div className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-3xl p-8 md:p-12 shadow-sm">
           <Section title="1. Information We Collect">
-            <p>When you sign up for CheckMyEntry, we collect the following information:</p>
+            <p>When you sign up for ScanMyEntry, we collect the following information:</p>
             <ul className="list-disc list-inside space-y-1 pl-2">
               <li>Your full name and email address</li>
               <li>Date of Birth (used for account and password recovery)</li>
@@ -57,11 +57,11 @@ export default function PrivacyPolicy() {
           </Section>
           <Section title="4. Cookies">
             <p>
-              CheckMyEntry uses minimal cookies solely for session management. We do not set any third-party advertising or tracking cookies.
+              ScanMyEntry uses minimal cookies solely for session management. We do not set any third-party advertising or tracking cookies.
             </p>
           </Section>
           <Section title="5. Your Rights">
-            <p>You may request deletion of your account and associated data by contacting us at <span className="text-[#00E5FF]">support@checkmyentry.com</span></p>
+            <p>You may request deletion of your account and associated data by contacting us at <span className="text-[#00E5FF]">support@scanmyentry.com</span></p>
             <p>You can update your profile information directly from the dashboard at any time.</p>
           </Section>
           <Section title="6. Contact">

@@ -52,7 +52,7 @@ export default function Home() {
                <QrCode className="w-5 h-5 text-white" />
              </div>
              <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">
-               CheckMyEntry
+               ScanMyEntry
              </span>
           </div>
           <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600 dark:text-neutral-300">
@@ -85,7 +85,7 @@ export default function Home() {
           >
             <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-100 text-slate-800 dark:bg-[#00E5FF]/10 border border-slate-200 dark:border-[#00E5FF]/20 dark:text-[#00E5FF] text-xs font-bold tracking-wide mb-6 shadow-sm">
                <span className="w-2 h-2 rounded-full bg-[#00E5FF] mr-2 animate-pulse"></span>
-               CheckMyEntry SaaS Platform 2.0
+               ScanMyEntry SaaS Platform 2.0
             </div>
             <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-slate-900 dark:text-white mb-6">
               Create, Manage & Scan <br />
@@ -520,7 +520,7 @@ export default function Home() {
               Start Managing Your Events <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] to-[#8B5CF6]">Like a Pro.</span>
             </h2>
             <p className="text-slate-600 dark:text-neutral-400 font-medium text-lg mb-10 max-w-xl mx-auto">
-              Join thousands of organizers who use CheckMyEntry to deliver flawless event experiences.
+              Join thousands of organizers who use ScanMyEntry to deliver flawless event experiences.
             </p>
             <Link href="/dashboard">
               <button className="h-16 px-10 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold shadow-xl hover:scale-105 transition-transform flex items-center justify-center gap-3 text-lg mx-auto">
@@ -537,7 +537,7 @@ export default function Home() {
                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00E5FF] to-[#8B5CF6] flex items-center justify-center">
                    <QrCode className="w-4 h-4 text-white" />
                  </div>
-                 <span className="font-bold text-lg text-slate-900 dark:text-white">CheckMyEntry</span>
+                 <span className="font-bold text-lg text-slate-900 dark:text-white">ScanMyEntry</span>
                </div>
                <div className="flex flex-wrap gap-8 text-sm font-medium text-slate-600 dark:text-neutral-400">
                   <Link href="/about" className="hover:text-[#00E5FF] transition-colors">About Us</Link>
@@ -547,7 +547,7 @@ export default function Home() {
                </div>
             </div>
             <div className="pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-500 dark:text-neutral-600">
-               <p>© {new Date().getFullYear()} CheckMyEntry Platform. All rights reserved.</p>
+               <p>© {new Date().getFullYear()} ScanMyEntry Platform. All rights reserved.</p>
                <p className="flex items-center gap-1">Designed with <span className="text-red-500">♥</span> for Event Organizers</p>
             </div>
          </div>

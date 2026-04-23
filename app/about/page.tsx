@@ -14,7 +14,7 @@ export default function AboutUs() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00E5FF] to-[#8B5CF6] flex items-center justify-center shadow-lg">
               <QrCode className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl tracking-tight">CheckMyEntry</span>
+            <span className="font-bold text-xl tracking-tight">ScanMyEntry</span>
           </Link>
           <ThemeToggle />
         </div>
@@ -27,7 +27,7 @@ export default function AboutUs() {
             Built in India for India
           </span>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
-            About <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] to-[#8B5CF6]">CheckMyEntry</span>
+            About <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00E5FF] to-[#8B5CF6]">ScanMyEntry</span>
           </h1>
           <p className="text-lg text-slate-600 dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
             Built for event organizers across India — a platform that makes check-in fast, seamless, and professional.
@@ -39,7 +39,7 @@ export default function AboutUs() {
             <Heart className="w-6 h-6 text-rose-500" /> Our Mission
           </h2>
           <p className="text-slate-600 dark:text-neutral-400 leading-relaxed text-lg">
-            CheckMyEntry was born from a simple frustration — event management in India still relies heavily on manual processes.
+            ScanMyEntry was born from a simple frustration — event management in India still relies heavily on manual processes.
             Long queues, paper lists, and Excel sheets have caused headaches for countless organizers.
             We wanted to change that.
           </p>
@@ -67,7 +67,7 @@ export default function AboutUs() {
           <h2 className="text-2xl font-bold mb-6">About the Team</h2>
           <p className="text-slate-600 dark:text-neutral-400 leading-relaxed text-lg">
             We are a team of passionate developers from Jodhpur, Rajasthan who believe technology can solve everyday problems.
-            CheckMyEntry is our flagship product, built to be equally effective for organizers in tier-2 and tier-3 cities across India.
+            ScanMyEntry is our flagship product, built to be equally effective for organizers in tier-2 and tier-3 cities across India.
           </p>
           <div className="mt-6 flex items-center gap-3 text-sm text-slate-500 dark:text-neutral-400">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00E5FF] to-[#8B5CF6] flex items-center justify-center text-white text-xs font-bold">R</div>

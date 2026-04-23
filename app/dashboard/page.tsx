@@ -166,10 +166,16 @@ export default function Dashboard() {
     }
   }, [isScannerOpen]);
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
+    if (!authLoading) {
+      if (!user) {
+        router.push("/login");
+      } else if (!user.emailVerified) {
+        // If logged in but not verified, redirect to login which handles the verification message
+        router.push("/login");
+      }
     }
   }, [user, authLoading, router]);
+
   useEffect(() => {
     if (user?.uid) {
       fetchEvents(user.uid);
@@ -432,7 +438,7 @@ export default function Dashboard() {
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer">
               <QrCode className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">CheckMyEntry</span>
+              <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">ScanMyEntry</span>
             </div>
           </Link>
           <div className="flex items-center gap-4">

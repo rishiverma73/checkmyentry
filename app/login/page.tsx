@@ -1,31 +1,68 @@
 "use client";
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Lock, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState("");
+  const [unverifiedUser, setUnverifiedUser] = useState<any>(null);
+  
   const router = useRouter();
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setResendMsg("");
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        setUnverifiedUser(user);
+        setError("Please verify your email first.");
+        // Sign out the user so they can't access protected routes via context until verified
+        await signOut(auth);
+        setLoading(false);
+        return;
+      }
+
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
       setError("Invalid email or password.");
-    } finally {
       setLoading(false);
     }
   };
+
+  const handleResend = async () => {
+    if (!unverifiedUser) return;
+    setResending(true);
+    setResendMsg("");
+    try {
+      auth.useDeviceLanguage();
+      
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(cred.user);
+      await signOut(auth);
+      setResendMsg("Verification email sent! Check your inbox (and Spam folder).");
+    } catch (err: any) {
+      console.error("Resend error:", err);
+      setResendMsg(`Error sending email: ${err.message}`);
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
       {/* Background Orbs */}
@@ -43,15 +80,44 @@ export default function Login() {
             <p className="text-slate-500 dark:text-slate-400 text-sm">Sign in to manage your event passes</p>
           </div>
           {error && (
+            <div className="space-y-3 mb-6">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-400 p-3 rounded-xl flex items-center gap-2 text-sm"
+              >
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <span>{error}</span>
+              </motion.div>
+              
+              {error === "Please verify your email first." && (
+                <button
+                  onClick={handleResend}
+                  disabled={resending}
+                  className="w-full text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
+                >
+                  {resending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Mail className="w-3 h-3" />
+                  )}
+                  Resend Verification Email
+                </button>
+              )}
+            </div>
+          )}
+
+          {resendMsg && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-400 p-3 rounded-xl flex items-center gap-2 mb-6 text-sm"
+              className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/50 text-green-600 dark:text-green-400 p-3 rounded-xl flex items-center gap-2 mb-6 text-sm"
             >
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              <span>{error}</span>
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+              <span>{resendMsg}</span>
             </motion.div>
           )}
+
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-1">
               <label className="text-slate-600 dark:text-slate-300 text-sm font-medium ml-1">Email</label>

@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth";
 import { auth, db } from "../../lib/firebase";
 import { setDoc, doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Calendar, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Calendar, ArrowRight, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,7 +15,9 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
   const router = useRouter();
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -26,11 +29,26 @@ export default function Signup() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
+      // Set language to default device language to ensure email is formatted correctly
+      auth.useDeviceLanguage();
+
+      try {
+        // Send Verification Email
+        await sendEmailVerification(userCredential.user);
+      } catch (emailErr: any) {
+        console.error("Email sending failed:", emailErr);
+        // We still continue because the user is created, but we notify them
+        setError(`Account created, but failed to send verification email (${emailErr.message}). Please try resending from the login page.`);
+        setLoading(false);
+        return; // Stop here so they don't see the success screen if it actually failed
+      }
+
       // Update Auth Profile
       await updateProfile(userCredential.user, {
         displayName: name,
       });
-      // Initialize user data in Firestore (including DOB for password recovery)
+
+      // Initialize user data in Firestore
       await setDoc(doc(db, "user_profiles", userCredential.user.uid), {
         uid: userCredential.user.uid,
         name: name,
@@ -38,14 +56,51 @@ export default function Signup() {
         dob: dob,
         createdAt: new Date().toISOString(),
       });
-      router.push("/dashboard");
+
+      setVerificationSent(true);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Failed to create an account.");
+      if (err.code === "auth/email-already-in-use") {
+        setError("This email is already registered.");
+      } else {
+        setError(err.message || "Failed to create an account.");
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  if (verificationSent) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
+        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-400/40 dark:bg-purple-600/40 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-blue-400/40 dark:bg-blue-600/40 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[128px] animate-pulse"></div>
+        
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md bg-white/70 dark:bg-white/10 backdrop-blur-xl border border-slate-200 dark:border-white/20 rounded-3xl p-10 shadow-2xl relative z-10 text-center"
+        >
+          <div className="w-20 h-20 bg-green-100 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Verify Your Email</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-8">
+            We've sent a verification link to <span className="font-bold text-slate-900 dark:text-white">{email}</span>. 
+            Please check your inbox and click the link to activate your account.
+          </p>
+          <div className="space-y-4">
+            <Link href="/login">
+              <button className="w-full py-3.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:opacity-90 transition-opacity">
+                Go to Login
+              </button>
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
       {/* Background Orbs */}

@@ -60,7 +60,7 @@ export default function Pricing() {
                <QrCode className="w-5 h-5 text-white" />
              </div>
              <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">
-               CheckMyEntry
+               ScanMyEntry
              </span>
           </Link>
           <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600 dark:text-neutral-300">
@@ -282,7 +282,7 @@ export default function Pricing() {
                          </div>
                          <div>
                             <p className="text-sm text-slate-400 dark:text-neutral-500 font-semibold uppercase tracking-wider mb-1">Email</p>
-                            <p className="text-xl font-bold text-slate-900 dark:text-white">support@checkmyentry.com</p>
+                            <p className="text-xl font-bold text-slate-900 dark:text-white">support@scanmyentry.com</p>
                          </div>
                       </div>
                       <div className="flex items-center gap-5">
@@ -346,7 +346,7 @@ export default function Pricing() {
                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00E5FF] to-[#8B5CF6] flex items-center justify-center">
                    <QrCode className="w-4 h-4 text-white" />
                  </div>
-                 <span className="font-bold text-lg text-slate-900 dark:text-white">CheckMyEntry</span>
+                 <span className="font-bold text-lg text-slate-900 dark:text-white">ScanMyEntry</span>
                </div>
                <div className="flex flex-wrap gap-8 text-sm font-medium text-slate-600 dark:text-neutral-400">
                   <Link href="/" className="hover:text-[#00E5FF] transition-colors text-slate-600 dark:text-neutral-400">Home</Link>
@@ -357,7 +357,7 @@ export default function Pricing() {
                </div>
             </div>
             <div className="pt-8 border-t border-slate-200 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-400 dark:text-neutral-600">
-               <p>© {new Date().getFullYear()} CheckMyEntry Platform. All rights reserved.</p>
+               <p>© {new Date().getFullYear()} ScanMyEntry Platform. All rights reserved.</p>
                <p className="flex items-center gap-1">Built for high-performance ticketing.</p>
             </div>
          </div>
