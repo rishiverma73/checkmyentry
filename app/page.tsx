@@ -177,15 +177,15 @@ export default function Home() {
            <div className="flex flex-wrap justify-center gap-8 md:gap-16">
               <div className="flex items-center gap-2">
                 <Users className="w-6 h-6 text-[#00E5FF]" />
-                <span className="font-bold text-xl text-slate-800 dark:text-white">10,000+ <span className="text-sm text-slate-500 dark:text-neutral-400 font-medium">Registrations</span></span>
+                <span className="font-bold text-xl text-slate-800 dark:text-white">1000+<span className="text-sm text-slate-500 dark:text-neutral-400 font-medium">Registrations</span></span>
               </div>
               <div className="flex items-center gap-2">
                 <CalendarPlus className="w-6 h-6 text-[#8B5CF6]" />
-                <span className="font-bold text-xl text-slate-800 dark:text-white">500+ <span className="text-sm text-slate-500 dark:text-neutral-400 font-medium">Events</span></span>
+                <span className="font-bold text-xl text-slate-800 dark:text-white">20+<span className="text-sm text-slate-500 dark:text-neutral-400 font-medium">Events</span></span>
               </div>
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-6 h-6 text-emerald-400" />
-                <span className="font-bold text-xl text-slate-800 dark:text-white">99.9% <span className="text-sm text-slate-500 dark:text-neutral-400 font-medium">Uptime</span></span>
+                <span className="font-bold text-xl text-slate-800 dark:text-white">99.9%<span className="text-sm text-slate-500 dark:text-neutral-400 font-medium">Uptime</span></span>
               </div>
            </div>
         </div>
